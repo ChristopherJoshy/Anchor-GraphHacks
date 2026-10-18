@@ -1,7 +1,7 @@
 # Product decision: Anchor — counterexample-driven recovery under attack
 
 **Decision date:** 18 October 2026
-**Status:** Direction selected; implementation claims remain unverified until tested.
+**Status:** Direction selected; the core local recovery flow, stress checks, changed-capacity replan, and MCP execution were exercised. Public demo video and participant review remain outstanding.
 
 ## Decision
 

@@ -7,7 +7,7 @@
 - Docker Desktop/Engine with Compose v2
 - Optional dashboard: Node.js/npm
 
-The backend and graph bind to loopback. This environment confirmed Python 3.13 and `uv`, but its execution shell could not locate the user's Docker CLI; no container run is claimed.
+The backend and graph bind to loopback. Verified locally on 18 Oct 2026: Windows 11 build 26200, Python 3.13.14, Docker Desktop 4.95.0 / Engine 29.8.2, and the `falkordb/falkordb:v4.20.4` image. `docker compose ps` showed FalkorDB healthy, `uv run anchor doctor` reported graph and mock ERP ready, and Codex CLI tool calls reached the running MCP endpoint. Claude Code and OpenCode were not exercised.
 
 ```powershell
 Copy-Item .env.example .env
@@ -35,7 +35,7 @@ codex mcp add anchor --url http://127.0.0.1:8765/mcp
 codex mcp list
 ```
 
-This command manages Codex's MCP config; it does not overwrite unrelated configuration. Anchor was not registered with Codex in this environment.
+Codex CLI 0.163.0 is registered to `http://127.0.0.1:8765/mcp`; `codex mcp get anchor` confirmed the URL. A fresh `codex exec` called `anchor_health`, exercised `anchor_modify_dependency` with a deliberately invalid self-link (rejected by validation), and retrieved `anchor_history`. The complete recovery workflow was also run through Codex CLI against the local graph and ERP. Add the server only if it is not already registered; restart Codex if the tool list is stale.
 
 ## Claude Code
 

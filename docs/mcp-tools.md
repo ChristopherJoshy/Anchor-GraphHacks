@@ -18,4 +18,4 @@ Transport: Streamable HTTP at `http://127.0.0.1:8765/mcp`; loopback binding by d
 | `anchor_modify_dependency` | supplier ID, upstream supplier ID, connected, mode | Connects or removes one synthetic supplier dependency in `SIMULATION`, rejects unknown endpoints and cycles, and bumps the graph version so existing plans become stale. |
 | `anchor_reset_demo` | none | Destructively reseeds only the named demo graph and local mock ERP. |
 
-Inputs and outputs are structured; graph-dependent operations do not fall back to an in-memory topology. All execution is synthetic. No client compatibility is claimed until tool discovery is exercised in that client.
+Inputs and outputs are structured; graph-dependent operations do not fall back to an in-memory topology. All execution is synthetic. Codex CLI 0.163.0 was registered and exercised against this local Streamable HTTP server. Claude Code and OpenCode have not been tested.

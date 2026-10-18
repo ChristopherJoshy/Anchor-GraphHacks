@@ -1,20 +1,21 @@
 # AI assistance disclosure
 
-## Current disclosure
+Updated 18 Oct 2026 for the Graph Hacks submission.
 
-AI assistance was used to research and draft Anchor's product positioning, competitive assessment, governance instructions, architecture narrative, participant explanation, and portions of this documentation. The research assistant browsed public sources and drafted summaries; source links and dates are recorded in `docs/research.md`. The human participant supplied the product direction, reviewed the requested scope, and remains responsible for checking the sources, understanding the design, and deciding what is submitted.
+## AI tools and contributions
 
-This disclosure covers the assistance known for this documentation task. It does not yet provide a complete inventory of every AI tool, model, agent, prompt, or code contribution used during the project's earlier or later implementation. Before submission, the participant must update this section from the actual work history, including coding assistants, generated code/assets, and any AI services embedded in the demo. Do not claim a human verified a result unless they did so.
+- **OpenAI Codex coding agent.** The runtime identifies this assistant as GPT-6; its exact build identifier is not exposed. It assisted with public-source research, product and architecture decisions, Python backend and MCP implementation, graph queries, optimization and simulation code, synthetic seed generation, tests, benchmark tooling, and project documentation. The user supplied the project brief, named the product Anchor, set the goals and constraints, and steered the product direction.
+- **OpenAI Codex CLI 0.163.0.** A fresh CLI execution reported model `gpt-6-luna` and was used as an actual MCP client. It selected and called Anchor tools for health, dependency validation, history, and the recovery demonstration. The exact hosted model build is not exposed by the CLI.
+- AI assistance also contributed to the dashboard and its presentation during project implementation. Any additional AI tools, models, generated media, or collaborator usage must be added by Team Nexus before submission.
 
-## Required completion before submission
+## What the running product uses
 
-Record:
+Anchor's backend does not call an LLM API. Its graph traversals, source qualification, impact calculation, CP-SAT allocation, mock ERP mutations, and verification are performed by application code and FalkorDB. A connected coding-agent client supplies natural-language interpretation and MCP tool selection; it does not supply operational facts or the computed allocation.
 
-- Each coding assistant, model/service, and version when known.
-- Whether it contributed code, tests, research, prose, synthetic data, design, or media.
-- Material human decisions, edits, verification steps, and tests actually performed.
-- Any AI functionality invoked by the running product, including whether the demo relies on it.
+The demo network is synthetic. Real-world company relationships, supplier capacities, contracts, prices, inventory, routes, and disruptions are not represented as real data.
 
-## Participant responsibility
+## Verification and participant responsibility
 
-AI use is permitted by the [official Graph Hacks rules](https://www.wemakedevs.org/hackathons/falkordb/rules), but must be disclosed. The rules also say participants must understand and be able to explain their graph model, queries, architecture, and technical decisions; an entirely AI-generated submission without meaningful participant contribution, verification, or understanding may be rejected. Team members should review the actual code and run the demo rather than relying on this prose as proof of correctness.
+During this work session, the coding agent ran the automated test suite, Ruff, the frontend production build, a reproducible local benchmark, Docker/FalkorDB health checks, and fresh Codex CLI MCP calls. Those results are recorded in the repository; they are not a claim that a human independently reviewed every line or ran every command.
+
+The participant provided the requirements, product direction, constraints, and review steering. Before submission, Team Nexus must personally inspect the implementation, reproduce the demo, understand the graph model and queries, explain the optimizer and action checks, and update this disclosure with any AI use by other team members. The [official rules](https://www.wemakedevs.org/hackathons/falkordb/rules) require meaningful participant understanding and verification; this disclosure does not replace that work.
