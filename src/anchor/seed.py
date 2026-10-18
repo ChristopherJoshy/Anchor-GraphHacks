@@ -196,14 +196,14 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
             TARGET_PRODUCT_ID if supplier["id"] in overrides else products[1 + i % 29]["id"]
         )
         dependencies.append({"from": supplier["id"], "to": product_id, "type": "SUPPLIES"})
-    for facility in facilities:
+    for facility_index, facility in enumerate(facilities, start=1):
         dependencies.append(
             {"from": facility["id"], "to": f"LOC-{facility['country']}", "type": "LOCATED_AT"}
         )
         product_id = (
             TARGET_PRODUCT_ID
             if facility["id"] == "FAC-MCU-ASSEMBLY"
-            else products[1 + int(facility["id"][-3:]) % 29]["id"]
+            else products[1 + facility_index % 29]["id"]
         )
         dependencies.append({"from": facility["id"], "to": product_id, "type": "PRODUCES"})
     dependencies.append({"from": "FAC-MCU-ASSEMBLY", "to": "PROD-002", "type": "REQUIRES_INPUT"})
