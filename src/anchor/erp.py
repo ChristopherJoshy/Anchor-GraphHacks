@@ -34,6 +34,10 @@ class ConflictingAllocation(ERPError):
     pass
 
 
+class InjectedExecutionFailure(ERPError):
+    pass
+
+
 class ERP:
     """A durable mock ERP; all mutations are local and simulation-only.
 
@@ -99,6 +103,9 @@ class ERP:
                     allocation_id TEXT NOT NULL REFERENCES allocations(id),
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS execution_faults (
+                    source_id TEXT PRIMARY KEY
+                );
                 """
             )
 
@@ -143,6 +150,7 @@ class ERP:
             )
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            db.execute("DELETE FROM execution_faults")
             db.execute("DELETE FROM releases")
             db.execute("DELETE FROM allocations")
             db.execute("DELETE FROM orders")
@@ -150,6 +158,16 @@ class ERP:
             db.executemany("INSERT INTO sources VALUES (?, ?, ?, ?, ?, ?, ?)", validated_sources)
             db.executemany("INSERT INTO orders VALUES (?, ?, ?, ?, ?)", validated_orders)
             db.commit()
+
+    def inject_reservation_failure_once(self, source_id: str) -> None:
+        """Reject the next reservation attempt for one synthetic supplier."""
+        with self._connect() as db:
+            source = db.execute("SELECT kind FROM sources WHERE id = ?", (source_id,)).fetchone()
+            if source is None or source["kind"] != "supplier":
+                raise ERPError(f"unknown simulated supplier '{source_id}'")
+            db.execute(
+                "INSERT OR REPLACE INTO execution_faults (source_id) VALUES (?)", (source_id,)
+            )
 
     def current_state(self) -> dict[str, Any]:
         """Return the durable source, order, and allocation state."""
@@ -187,6 +205,15 @@ class ERP:
             raise ValueError("idempotency_key must be non-empty")
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            fault = db.execute(
+                "SELECT 1 FROM execution_faults WHERE source_id = ?", (item.source_id,)
+            ).fetchone()
+            if fault:
+                db.execute("DELETE FROM execution_faults WHERE source_id = ?", (item.source_id,))
+                db.commit()
+                raise InjectedExecutionFailure(
+                    f"Injected one-time reservation rejection for supplier '{item.source_id}'"
+                )
             prior = db.execute(
                 "SELECT * FROM allocations WHERE idempotency_key = ?", (idempotency_key,)
             ).fetchone()

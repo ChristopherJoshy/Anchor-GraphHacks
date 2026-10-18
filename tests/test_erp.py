@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from anchor.erp import ERP, ConflictingAllocation, InsufficientCapacity, InsufficientInventory
+from anchor.erp import (
+    ERP,
+    ConflictingAllocation,
+    InjectedExecutionFailure,
+    InsufficientCapacity,
+    InsufficientInventory,
+)
 from anchor.models import ActionReceipt, Allocation
 
 
@@ -56,6 +62,19 @@ def test_rejects_insufficient_inventory_and_supplier_capacity(erp):
     with pytest.raises(InsufficientCapacity):
         erp.apply_allocation(allocation("supplier", 11, 125, 3), "too-much-capacity")
     assert erp.read_allocations() == []
+
+
+def test_injected_reservation_failure_is_one_shot_and_does_not_mutate_state(erp):
+    erp.inject_reservation_failure_once("supplier")
+
+    with pytest.raises(InjectedExecutionFailure, match="one-time reservation rejection"):
+        erp.apply_allocation(allocation("supplier", 4, 125, 3), "retryable-failure")
+
+    assert erp.read_allocations() == []
+    assert (
+        erp.apply_allocation(allocation("supplier", 4, 125, 3), "retryable-failure").status
+        == "APPLIED"
+    )
 
 
 def test_idempotency_returns_duplicate_receipt_and_conflicts_are_rejected(erp):
