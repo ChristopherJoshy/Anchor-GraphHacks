@@ -123,16 +123,16 @@ def anchor_explain_decision(plan_id: str) -> dict:
 
 @mcp.tool
 def anchor_modify_simulation(
-    entity_id: str, value: int = Field(..., ge=0), kind: str = "supplier_capacity"
+    entity_id: str, capacity: int = Field(..., ge=0), kind: str = "supplier_capacity"
 ) -> dict:
     """Modify an allowlisted synthetic capacity field; no production data is writable."""
     if kind != "supplier_capacity":
         raise ValueError("Only supplier_capacity is currently supported")
-    version = service.graph.set_capacity(entity_id, value)
-    service.erp.set_capacity(entity_id, value)
+    version = service.graph.set_capacity(entity_id, capacity)
+    service.erp.set_capacity(entity_id, capacity)
     return {
         "entity_id": entity_id,
-        "capacity": value,
+        "capacity": capacity,
         "graph_version": version,
         "mode": "SIMULATION",
     }

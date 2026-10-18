@@ -59,6 +59,8 @@ def test_mcp_streamable_http_initializes_lists_tools_and_rejects_bad_host():
         assert '"name":"anchor_health"' in listed.text
         assert '"name":"anchor_reset_demo"' in listed.text
         assert '"name":"anchor_inject_simulated_failure"' in listed.text
+        assert '"name":"anchor_modify_simulation"' in listed.text
+        assert '"capacity"' in listed.text
 
         rejected = client.post(
             "/mcp",
