@@ -35,7 +35,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         for code, name, lat, lon in COUNTRIES
     ]
     suppliers: list[dict[str, Any]] = []
-    for index in range(34):
+    for index in range(33):
         suppliers.append(
             {
                 "id": f"SUP-{index + 1:03d}",
@@ -55,7 +55,8 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         "SUP-BACKUP-B": ("Backup Vendor B (synthetic)", "JP", 600, 340, 6),
         "SUP-BACKUP-C": ("Backup Vendor C (synthetic)", "KR", 600, 360, 7),
         "SUP-INDEPENDENT-D": ("Independent Vendor D (synthetic)", "DE", 650, 900, 9),
-        "SUP-INDEPENDENT-E": ("Independent Vendor E (synthetic)", "US", 250, 1250, 12),
+        "SUP-INDEPENDENT-E": ("Independent Vendor E (synthetic)", "US", 650, 1250, 12),
+        "SUP-INDEPENDENT-F": ("Independent Vendor F (synthetic)", "MY", 200, 2000, 15),
     }
     for entity_id, (name, country, capacity, price, lead) in overrides.items():
         suppliers.append(
@@ -186,6 +187,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         {"from": "SUP-BACKUP-C", "to": "FAC-004", "type": "OPERATES"},
         {"from": "SUP-INDEPENDENT-D", "to": "FAC-005", "type": "OPERATES"},
         {"from": "SUP-INDEPENDENT-E", "to": "FAC-006", "type": "OPERATES"},
+        {"from": "SUP-INDEPENDENT-F", "to": "FAC-007", "type": "OPERATES"},
     ]
     for i, supplier in enumerate(suppliers):
         if supplier["id"] not in {item["from"] for item in dependencies}:

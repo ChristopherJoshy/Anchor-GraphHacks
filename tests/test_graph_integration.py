@@ -29,6 +29,8 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
         "INV-MCU-350": 350,
         "SUP-INDEPENDENT-D": 650,
     }
+    assert first_plan.objective.worst_single_failure_shortfall == 0
+    assert first_plan.stress_passed
 
     restarted_service = AnchorService(
         graph=GraphStore(graph_name="anchor_integration_test"), erp=ERP(erp_path)
@@ -45,6 +47,8 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
         "SUP-INDEPENDENT-D": 450,
         "SUP-INDEPENDENT-E": 200,
     }
+    assert second_plan.objective.worst_single_failure_shortfall == 0
+    assert second_plan.stress_passed
     second_run = service.execute(second_plan.id, idempotency_key="integration-run-2")
     assert second_run["status"] == "RECOVERED"
     assert second_run["remaining_shortfall"] == 0

@@ -82,6 +82,42 @@ def test_bounded_stress_reports_risk_and_capacity_change_changes_plan():
     }
 
 
+def test_standby_capacity_can_keep_recovery_feasible_under_single_failures():
+    sources = [
+        source("inventory", 350, 0, kind="inventory"),
+        source("independent-a", 650, 900),
+        source("independent-b", 650, 1250),
+        source("independent-c", 200, 2000),
+    ]
+    plan = optimize_recovery(
+        "incident",
+        1,
+        sources,
+        demand(),
+        max_iterations=8,
+    )
+
+    assert {a.source_id: a.quantity for a in plan.allocations} == {
+        "inventory": 350,
+        "independent-a": 650,
+    }
+    assert plan.objective.worst_single_failure_shortfall == 0
+    assert plan.stress_passed
+
+    reduced = [
+        item.model_copy(update={"capacity": 450}) if item.id == "independent-a" else item
+        for item in sources
+    ]
+    replanned = optimize_recovery("incident", 2, reduced, demand(), max_iterations=8)
+    assert {a.source_id: a.quantity for a in replanned.allocations} == {
+        "inventory": 350,
+        "independent-a": 450,
+        "independent-b": 200,
+    }
+    assert replanned.objective.worst_single_failure_shortfall == 0
+    assert replanned.stress_passed
+
+
 def test_hard_eligibility_contract_availability_product_and_lead_time():
     sources = [
         source("unapproved", 100, 1, approved=False),
