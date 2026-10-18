@@ -8,7 +8,7 @@ from uuid import uuid4
 from anchor.config import settings
 from anchor.erp import ERP
 from anchor.graph import GraphStore, GraphUnavailableError
-from anchor.models import FailureScenario, OrderDemand, RecoveryPlan, Source
+from anchor.models import FailureScenario, OrderDemand, RecoveryPlan, Source, SourceExclusion
 from anchor.optimizer import optimize_recovery
 from anchor.seed import (
     INCIDENT_ENTITY_ID,
@@ -110,6 +110,7 @@ class AnchorService:
                 capacity=item["capacity"],
                 unit_price_minor=item["unit_price_minor"],
                 currency=item["currency"],
+                minor_units_per_major=item["minor_units_per_major"],
                 lead_days=item["lead_days"],
                 available=item["available"],
                 contract_approved=item["contract_approved"],
@@ -145,10 +146,23 @@ class AnchorService:
             if max_iterations is not None
             else settings.max_stress_iterations,
         )
+        plan.excluded_sources = [
+            SourceExclusion.model_validate(item)
+            for item in self.graph.dependency_exclusions(incident_id)
+        ]
         plan.id = f"plan:{incident_id}:{plan.graph_version}:{uuid4().hex[:8].upper()}"
         self.graph.persist_plan(plan)
         self._plans[plan.id] = plan
         return plan
+
+    def explain_decision(self, plan_id: str) -> dict:
+        plan = self._plans.get(plan_id)
+        if plan is None:
+            persisted = self.graph.get_plan(plan_id)
+            if persisted is None:
+                raise ValueError(f"Plan {plan_id} not found in FalkorDB")
+            plan = RecoveryPlan.model_validate(persisted)
+        return {**plan.model_dump(mode="json"), "cascade": self.assess(plan.incident_id)}
 
     def execute(
         self, plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
@@ -256,12 +270,22 @@ class AnchorService:
         )
 
     def execute_with_replan(
-        self, plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
+        self,
+        plan_id: str,
+        mode: str = "SIMULATION",
+        idempotency_key: str | None = None,
+        max_replans: int = 1,
     ) -> dict:
-        """Retry once with a newly solved plan after an execution failure."""
+        """Retry at most once with a newly solved plan after an execution failure."""
+        if isinstance(max_replans, bool) or max_replans not in (0, 1):
+            raise ValueError("max_replans must be 0 or 1")
         first = self.execute(plan_id, mode, idempotency_key)
         attempts = [{"plan_id": plan_id, **first}]
-        if first["status"] != "EXECUTION_FAILED" or not first["replan_required"]:
+        if (
+            max_replans == 0
+            or first["status"] != "EXECUTION_FAILED"
+            or not first["replan_required"]
+        ):
             return {**first, "attempts": attempts, "replans": 0}
         plan = self.plan(first["incident_id"])
         retry_key = f"{idempotency_key}:replan-1" if idempotency_key else None

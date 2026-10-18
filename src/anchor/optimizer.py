@@ -243,6 +243,10 @@ def optimize_recovery(
     ``correlated_scenarios`` must be derived by graph traversal; failed IDs must identify
     source IDs represented in ``sources``. Amounts are integer units and prices are minor units.
     """
+    cost_units = {(source.currency, source.minor_units_per_major) for source in sources}
+    if len(cost_units) > 1:
+        raise ValueError("recovery sources must use one currency and minor-unit scale")
+    currency, minor_units_per_major = next(iter(cost_units), ("USD", 100))
     if max_iterations < 0:
         raise ValueError("max_iterations must be non-negative")
     if len({s.id for s in sources}) != len(sources) or len({o.id for o in orders}) != len(orders):
@@ -307,6 +311,8 @@ def optimize_recovery(
             worst_correlated_pair_shortfall=worst_pair,
             incremental_cost_minor=values["cost"],
             supplier_changes=values["changes"],
+            currency=currency,
+            minor_units_per_major=minor_units_per_major,
         ),
         tested_scenarios=tested,
         worst_counterexample=worst_scenario[0] if worst_scenario[0] and worst_scenario[1] else None,

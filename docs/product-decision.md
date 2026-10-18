@@ -3,6 +3,12 @@
 **Decision date:** 18 October 2026
 **Status:** Direction selected; the core local recovery flow, stress checks, changed-capacity replan, and MCP execution were exercised. Public demo video and participant review remain outstanding.
 
+## Reliability correction from the CLI rehearsal — 18 October 2026
+
+The rehearsal exposed three product defects and one runbook hazard. The seeded Taiwan foundry started with zero capacity, so the baseline was already disrupted. Triggering an outage recorded an incident but did not mutate the supplier or its supply edge. Decision explanations depended on the current service process instead of reloading a persisted plan. Finally, the rehearsal reused incident and plan IDs from a different graph state after reset; those IDs correctly no longer resolved.
+
+The corrected fixture starts the foundry at 1,000 units of capacity and models its upstream component relationship. A supplier or facility outage now marks the affected entity and its outgoing supply/production edges unavailable with zero capacity. Recovery plans persist exclusion paths and objective currency/scale, and explanations reload plans from FalkorDB after service restart. The MCP execution tool exposes `max_replans=0` to stop on the first failure or `1` for the existing single bounded replan. Use only incident and plan IDs returned by the current graph state. The full test suite passed after these corrections; the running CLI service must be restarted and the synthetic graph reset before the corrected flow is demonstrated.
+
 ## Decision
 
 Retain the supply-chain recovery concept and name it **Anchor**. Position it as **a recovery that is challenged by graph-derived follow-on failures before simulated execution**. FalkorDB must change source eligibility and expose the path witness; OR-Tools must compute a feasible allocation; the bounded stress set must return its tested cases and any counterexample; the policy gate permits only synthetic actions; and independent ERP read-back determines whether the action is verified.

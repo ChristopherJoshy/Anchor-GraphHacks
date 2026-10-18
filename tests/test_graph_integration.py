@@ -17,7 +17,30 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
     service = AnchorService(graph=graph, erp=ERP(erp_path))
     service.reset()
 
+    baseline = graph.network_summary()
+    foundry_before = next(
+        item for item in baseline["entity_records"] if item.get("id") == INCIDENT_ENTITY_ID
+    )
+    foundry_supply_before = next(
+        item
+        for item in baseline["relationship_records"]
+        if item.get("from") == INCIDENT_ENTITY_ID and item.get("type") == "SUPPLIES"
+    )
+    assert foundry_before["capacity"] == 1000 and foundry_before["available"] is True
+    assert foundry_supply_before["capacity"] == 1000 and foundry_supply_before["available"] is True
+
     incident = service.trigger(SCENARIO_ID, INCIDENT_ENTITY_ID)
+    disrupted = graph.network_summary()
+    foundry_after = next(
+        item for item in disrupted["entity_records"] if item.get("id") == INCIDENT_ENTITY_ID
+    )
+    foundry_supply_after = next(
+        item
+        for item in disrupted["relationship_records"]
+        if item.get("from") == INCIDENT_ENTITY_ID and item.get("type") == "SUPPLIES"
+    )
+    assert foundry_after["capacity"] == 0 and foundry_after["available"] is False
+    assert foundry_supply_after["capacity"] == 0 and foundry_supply_after["available"] is False
     impact = service.assess(incident["id"])
     shared_paths = {tuple(item["path"]) for item in impact["shared_dependency_paths"]}
     assert ("SUP-BACKUP-B", "SUP-TAIWAN-FOUNDRY") in shared_paths
@@ -31,10 +54,25 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
     }
     assert first_plan.objective.worst_single_failure_shortfall == 0
     assert first_plan.stress_passed
+    exclusions = {item.supplier_id: item for item in first_plan.excluded_sources}
+    assert {"SUP-PRIMARY", "SUP-BACKUP-B", "SUP-BACKUP-C"} <= set(exclusions)
+    for supplier_id in ("SUP-PRIMARY", "SUP-BACKUP-B", "SUP-BACKUP-C"):
+        assert exclusions[supplier_id].reasons == ["SHARED_UPSTREAM_PATH_TO_INCIDENT_ENTITY"]
+        assert exclusions[supplier_id].dependency_path == [supplier_id, INCIDENT_ENTITY_ID]
+    assert first_plan.objective.currency == "USD"
+    assert first_plan.objective.minor_units_per_major == 100
 
     restarted_service = AnchorService(
         graph=GraphStore(graph_name="anchor_integration_test"), erp=ERP(erp_path)
     )
+    explanation = restarted_service.explain_decision(first_plan.id)
+    assert {item["supplier_id"] for item in explanation["excluded_sources"]} >= {
+        "SUP-PRIMARY",
+        "SUP-BACKUP-B",
+        "SUP-BACKUP-C",
+    }
+    assert explanation["objective"]["currency"] == "USD"
+    assert explanation["objective"]["minor_units_per_major"] == 100
     service.erp.inject_reservation_failure_once("SUP-INDEPENDENT-D")
     recovery = restarted_service.execute_with_replan(
         first_plan.id, idempotency_key="integration-run-1"

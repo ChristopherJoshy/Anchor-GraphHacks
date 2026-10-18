@@ -58,7 +58,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
             }
         )
     overrides = {
-        "SUP-TAIWAN-FOUNDRY": ("Taiwan Foundry (synthetic)", "TW", 0, 0, 2),
+        "SUP-TAIWAN-FOUNDRY": ("Taiwan Foundry (synthetic)", "TW", 1000, 0, 2),
         "SUP-PRIMARY": ("Primary MCU Vendor (synthetic)", "TW", 1000, 520, 4),
         "SUP-BACKUP-B": ("Backup Vendor B (synthetic)", "JP", 600, 340, 6),
         "SUP-BACKUP-C": ("Backup Vendor C (synthetic)", "KR", 600, 360, 7),
@@ -203,7 +203,11 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
                 {"from": supplier["id"], "to": facilities[i % 20]["id"], "type": "OPERATES"}
             )
         product_id = (
-            TARGET_PRODUCT_ID if supplier["id"] in overrides else products[1 + i % 29]["id"]
+            "PROD-002"
+            if supplier["id"] == "SUP-TAIWAN-FOUNDRY"
+            else TARGET_PRODUCT_ID
+            if supplier["id"] in overrides
+            else products[1 + i % 29]["id"]
         )
         dependencies.append({"from": supplier["id"], "to": product_id, "type": "SUPPLIES"})
     for facility_index, facility in enumerate(facilities, start=1):
@@ -213,6 +217,8 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         product_id = (
             TARGET_PRODUCT_ID
             if facility["id"] == "FAC-MCU-ASSEMBLY"
+            else "PROD-002"
+            if facility["id"] == "FAC-TAIWAN-FOUNDRY"
             else products[1 + facility_index % 29]["id"]
         )
         dependencies.append({"from": facility["id"], "to": product_id, "type": "PRODUCES"})

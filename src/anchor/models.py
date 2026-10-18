@@ -39,6 +39,7 @@ class Source(BaseModel):
     capacity: int = Field(ge=0)
     unit_price_minor: int = Field(ge=0)
     currency: str = "USD"
+    minor_units_per_major: int = Field(default=100, gt=0)
     lead_days: int = Field(ge=0)
     available: bool = True
     contract_approved: bool = True
@@ -75,6 +76,22 @@ class PlanObjective(BaseModel):
     worst_correlated_pair_shortfall: int
     incremental_cost_minor: int
     supplier_changes: int
+    currency: str = "USD"
+    minor_units_per_major: int = Field(default=100, gt=0)
+
+
+class SourceExclusion(BaseModel):
+    supplier_id: str
+    supplier_name: str | None = None
+    product_id: str
+    supplier_capacity: int = Field(ge=0)
+    supplier_available: bool
+    supply_capacity: int = Field(ge=0)
+    supply_available: bool
+    contract_status: str | None = None
+    reasons: list[str]
+    dependency_path: list[str]
+    evidence_ids: list[str] = Field(default_factory=list)
 
 
 class RecoveryPlan(BaseModel):
@@ -84,6 +101,7 @@ class RecoveryPlan(BaseModel):
     allocations: list[Allocation]
     unmet_by_order: dict[str, int]
     objective: PlanObjective
+    excluded_sources: list[SourceExclusion] = Field(default_factory=list)
     tested_scenarios: list[FailureScenario] = Field(default_factory=list)
     worst_counterexample: FailureScenario | None = None
     stress_passed: bool = False

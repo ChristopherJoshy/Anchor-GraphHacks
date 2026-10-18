@@ -30,6 +30,8 @@ In the demo, the graph links two cheaper backup suppliers to the same affected u
 
 The MCP action invokes a simulation-only operation. The local mock ERP actually changes its persistent state and returns a receipt. Anchor independently reads back the allocations and compares them with the plan and order completion. A test-only injector can reject one supplier reservation. Anchor records the rejection, returns a failed first attempt and its partial read-back, then solves and executes at most one replacement plan. General timeout/backoff handling, partial workflow compensation, and automatic synchronization after an external production constraint change are out of scope.
 
+For a clean demo, reset the synthetic graph before starting, verify the foundry is initially available with positive capacity, and use only incident and plan IDs returned after that reset. Triggering a supplier/facility outage now changes the affected node and its outgoing supply/production edges to unavailable with zero capacity. The executor's `max_replans=0` option stops after the first failed attempt; `max_replans=1` permits one bounded replacement plan. The default remains one replan, so choose `0` explicitly when demonstrating stop-on-rejection behavior.
+
 ## MCP and session history
 
 MCP exposes typed domain tools to the coding agent; it is the interface, not the decision engine. Tool results should include concise summaries and structured IDs, quantities, statuses, paths, assumptions, and errors. Plans, actions, and outcomes are persisted in FalkorDB so an operator can ask about a previous run after reopening the client. The agent's conversation history is not the authoritative operational record.

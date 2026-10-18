@@ -155,3 +155,51 @@ def test_execute_replaces_prior_plan_and_verifies_run_readback(tmp_path):
     }
     assert service.verify(second_run["run_id"])["verified"]
     assert not service.verify(first_run["run_id"])["verified"]
+
+
+def test_execute_can_stop_after_first_rejected_action(tmp_path):
+    erp = ERP(tmp_path / "erp-stop-on-failure.sqlite3")
+    erp.reset(
+        {
+            "sources": [{"id": "D", "kind": "supplier", "product_id": "MCU", "capacity": 10}],
+            "orders": [{"id": "ORDER", "product_id": "MCU", "quantity": 10}],
+        }
+    )
+    graph = GraphFixture()
+    plan = RecoveryPlan(
+        id="PLAN-STOP",
+        incident_id="INC-STOP",
+        graph_version=1,
+        allocations=[
+            Allocation(
+                source_id="D",
+                order_id="ORDER",
+                product_id="MCU",
+                quantity=10,
+                unit_price_minor=1,
+                lead_days=1,
+            )
+        ],
+        unmet_by_order={"ORDER": 0},
+        objective={
+            "current_weighted_shortfall": 0,
+            "worst_single_failure_shortfall": 0,
+            "worst_correlated_pair_shortfall": 0,
+            "incremental_cost_minor": 10,
+            "supplier_changes": 1,
+        },
+    )
+    service = AnchorService(graph=graph, erp=erp)
+    service._plans[plan.id] = plan
+    erp.inject_reservation_failure_once("D")
+
+    result = service.execute_with_replan(plan.id, max_replans=0)
+
+    assert result["status"] == "EXECUTION_FAILED"
+    assert result["replans"] == 0
+    assert len(result["attempts"]) == 1
+    assert result["verified"] is False
+    assert service.verify(result["run_id"])["verified"] is False
+
+    with pytest.raises(ValueError, match="max_replans must be 0 or 1"):
+        service.execute_with_replan(plan.id, max_replans=2)

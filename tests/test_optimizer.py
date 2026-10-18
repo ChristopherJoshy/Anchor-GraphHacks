@@ -219,3 +219,18 @@ def test_cost_is_minor_units_and_lexicographic_after_service():
     )
     assert [(a.source_id, a.quantity) for a in plan.allocations] == [("cheap", 60)]
     assert plan.objective.incremental_cost_minor == 4500
+    assert plan.objective.currency == "USD"
+    assert plan.objective.minor_units_per_major == 100
+
+
+def test_optimizer_rejects_mixed_currency_minor_units():
+    sources = [
+        source("usd", 100, 100),
+        source("eur", 100, 100).model_copy(update={"currency": "EUR"}),
+    ]
+    try:
+        optimize_recovery("incident", 1, sources, demand(100), max_iterations=0)
+    except ValueError as exc:
+        assert "one currency and minor-unit scale" in str(exc)
+    else:
+        raise AssertionError("mixed-currency recovery costs must fail clearly")

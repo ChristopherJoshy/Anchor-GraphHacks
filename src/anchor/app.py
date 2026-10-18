@@ -97,10 +97,13 @@ def anchor_inject_simulated_failure(source_id: str) -> dict:
 
 @mcp.tool
 def anchor_execute_recovery(
-    plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
+    plan_id: str,
+    mode: str = "SIMULATION",
+    idempotency_key: str | None = None,
+    max_replans: int = Field(default=1, ge=0, le=1),
 ) -> dict:
-    """Execute, verify, and perform at most one solver replan after an action failure."""
-    return service.execute_with_replan(plan_id, mode, idempotency_key)
+    """Execute in simulation; optionally stop after the first failure or replan once."""
+    return service.execute_with_replan(plan_id, mode, idempotency_key, max_replans)
 
 
 @mcp.tool
@@ -112,13 +115,7 @@ def anchor_verify_recovery(run_id: str) -> dict:
 @mcp.tool
 def anchor_explain_decision(plan_id: str) -> dict:
     """Return the persisted plan, graph paths, optimization objective, and evidence."""
-    plan = service._plans.get(plan_id)
-    if plan is None:
-        for item in service.history():
-            if item.get("kind") == "RecoveryPlan" and item.get("id") == plan_id:
-                return item
-        raise ValueError(f"Plan {plan_id} is not in graph history")
-    return {**plan.model_dump(mode="json"), "cascade": service.assess(plan.incident_id)}
+    return service.explain_decision(plan_id)
 
 
 @mcp.tool

@@ -12,7 +12,7 @@ Start Docker Desktop. From the repository root, run `docker compose up -d`, `uv 
 2. **Agent action, 0:12–0:40 — Codex CLI:** Trigger the Taiwan foundry incident, assess impact, then request a recovery plan. Show the real MCP tool calls.
 3. **Graph insight, 0:40–1:05 — Explore network:** Show the paths from backup B and C to the affected foundry and the affected order. Explain that this relationship changes supplier eligibility.
 4. **Plan, 1:05–1:25 — Recover orders:** Show the computed allocation and bounded stress result. Fixture expectation: 350 inventory + 650 D, zero unmet, synthetic cost USD 5,850. Use live tool output if it differs.
-5. **Execute, 1:25–1:55 — Codex, then Recover orders:** Inject one simulated reservation rejection and execute. Show the rejected receipt, one bounded replan, and ERP read-back verification.
+5. **Execute, 1:25–1:55 — Codex, then Recover orders:** Inject one simulated reservation rejection and execute with `max_replans=1`. Show the rejected receipt, one bounded replan, and ERP read-back verification. Use `max_replans=0` when the operator requires stop-on-failure.
 6. **Adapt, 1:55–2:30 — Codex, then Recover orders:** Reduce D's capacity to 450, replan, execute, and verify. Fixture expectation: 350 inventory + 450 D + 200 E, zero unmet, synthetic cost USD 6,550. Show the actual result and new graph version.
 7. **Proof and close, 2:30–2:55 — Activity & evidence:** Show persisted incident/action history and one supporting path. State that FalkorDB changes eligibility and all writes are confined to simulation. The graph-unavailable check is for judge Q&A; never fake a database outage in the video.
 

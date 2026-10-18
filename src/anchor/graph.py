@@ -171,6 +171,7 @@ class GraphStore:
                 unit="unit",
                 unit_price_minor=source.get("unit_price_minor", 0),
                 currency="USD",
+                minor_units_per_major=100,
                 lead_days=source.get("lead_days", 0),
                 available=source.get("available", True),
                 verified=source.get("verified", True),
@@ -269,11 +270,20 @@ class GraphStore:
             raise ValueError("severity must be between 1 and 5")
         if not all((scenario_id, entity_id, incident_type)):
             raise ValueError("scenario_id, entity_id and incident_type are required")
-        exists = self._query(
-            "MATCH (s:Scenario {id: $scenario_id}), (n {id: $entity_id}) RETURN s.id, n.id LIMIT 1",
-            {"scenario_id": scenario_id, "entity_id": entity_id},
+        incident_type = incident_type.upper()
+        outage_labels = {"SUPPLIER_OUTAGE": "Supplier", "FACILITY_OUTAGE": "Facility"}
+        expected_label = outage_labels.get(incident_type)
+        match = (
+            f"MATCH (s:Scenario {{id: $scenario_id}}), (n:{expected_label} {{id: $entity_id}}) "
+            "RETURN s.id, n.id LIMIT 1"
+            if expected_label
+            else "MATCH (s:Scenario {id: $scenario_id}), (n {id: $entity_id}) "
+            "RETURN s.id, n.id LIMIT 1"
         )
+        exists = self._query(match, {"scenario_id": scenario_id, "entity_id": entity_id})
         if not exists:
+            if expected_label:
+                raise ValueError(f"{incident_type} requires an existing {expected_label} entity")
             raise ValueError("scenario or affected entity does not exist")
         incident_id = f"INC-{uuid4().hex[:12].upper()}"
         created = datetime.now(UTC).isoformat()
@@ -298,6 +308,18 @@ class GraphStore:
             "CREATE (i)-[:AFFECTS]->(n), (i)-[:SUPPORTED_BY]->(e)",
             params,
         )
+        if expected_label:
+            self._query(
+                f"MATCH (n:{expected_label} {{id: $entity_id}}) "
+                "SET n.available = false, n.capacity = 0",
+                {"entity_id": entity_id},
+            )
+            relationship = "SUPPLIES" if expected_label == "Supplier" else "PRODUCES"
+            self._query(
+                f"MATCH (n:{expected_label} {{id: $entity_id}})-[r:{relationship}]->() "
+                "SET r.available = false, r.capacity = 0",
+                {"entity_id": entity_id},
+            )
         graph_version = self._bump_version()
         self._query(
             "MATCH (i:Incident {id: $id}) SET i.graph_version = $version",
@@ -326,6 +348,7 @@ class GraphStore:
             "evidence_ids",
             "assumptions",
             "worst_counterexample",
+            "excluded_sources",
         ):
             value = plan.get(field)
             if isinstance(value, str):
@@ -520,6 +543,7 @@ class GraphStore:
                         edge.get("unit_price_minor", s.get("unit_price_minor", 0))
                     ),
                     "currency": edge.get("currency", "USD"),
+                    "minor_units_per_major": int(edge.get("minor_units_per_major", 100)),
                     "lead_days": int(edge.get("lead_days", s.get("lead_days", 0))),
                     "available": bool(edge.get("available", s.get("available", False))),
                     "contract_approved": contract_status == "APPROVED",
@@ -539,6 +563,7 @@ class GraphStore:
                     "capacity": qty,
                     "unit_price_minor": 0,
                     "currency": "USD",
+                    "minor_units_per_major": 100,
                     "lead_days": 0,
                     "available": qty > 0,
                     "contract_approved": True,
@@ -547,6 +572,36 @@ class GraphStore:
                 }
             )
         return results
+
+    def dependency_exclusions(self, incident_id: str) -> list[dict[str, Any]]:
+        """Return order-compatible suppliers with a path to the incident-affected entity."""
+        rows = self._query(
+            "MATCH (i:Incident {id: $id})-[:AFFECTS]->(failed) "
+            "MATCH (o:Order)-[:REQUIRES]->(p:Product) "
+            "WHERE o.scenario_id = i.scenario_id "
+            "MATCH (s:Supplier)-[sp:SUPPLIES]->(p) "
+            "MATCH path=(s)-[:DEPENDS_ON*1..12]->(failed) "
+            "OPTIONAL MATCH (c:Contract)-[:APPROVES]->(s) "
+            "RETURN DISTINCT s.id, s.name, p.id, s.capacity, s.available, "
+            "sp.capacity, sp.available, c.status, [x IN nodes(path) | x.id] AS path LIMIT 500",
+            {"id": incident_id},
+        )
+        return [
+            {
+                "supplier_id": row[0],
+                "supplier_name": row[1],
+                "product_id": row[2],
+                "supplier_capacity": int(row[3] or 0),
+                "supplier_available": bool(row[4]),
+                "supply_capacity": int(row[5] or 0),
+                "supply_available": bool(row[6]),
+                "contract_status": row[7],
+                "reasons": ["SHARED_UPSTREAM_PATH_TO_INCIDENT_ENTITY"],
+                "dependency_path": list(row[8] or []),
+                "evidence_ids": ["EVIDENCE-SILICON-SYNTHETIC"],
+            }
+            for row in rows
+        ]
 
     def failure_scenarios(self, incident_id: str) -> list[dict[str, Any]]:
         candidates = self.source_candidates(incident_id)

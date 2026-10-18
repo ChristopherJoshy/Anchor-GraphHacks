@@ -17,6 +17,18 @@ def test_synthetic_seed_builds_full_network_and_silicon_scenario():
     relationships = records["relationships"]
     assert {(edge["from"], edge["to"]) for edge in relationships if edge["type"] == "PRODUCES"} >= {
         ("FAC-MCU-ASSEMBLY", TARGET_PRODUCT_ID),
-        ("FAC-TAIWAN-FOUNDRY", "PROD-003"),
+        ("FAC-TAIWAN-FOUNDRY", "PROD-002"),
     }
     assert all(edge["from"] and edge["to"] for edge in relationships)
+    suppliers = {item["id"]: item for item in records["Supplier"]}
+    assert suppliers["SUP-TAIWAN-FOUNDRY"]["capacity"] == 1000
+    assert suppliers["SUP-TAIWAN-FOUNDRY"]["available"] is True
+    assert ("SUP-TAIWAN-FOUNDRY", "PROD-002") in {
+        (edge["from"], edge["to"]) for edge in relationships if edge["type"] == "SUPPLIES"
+    }
+    assert ("FAC-TAIWAN-FOUNDRY", "PROD-002") in {
+        (edge["from"], edge["to"]) for edge in relationships if edge["type"] == "PRODUCES"
+    }
+    assert ("SUP-TAIWAN-FOUNDRY", TARGET_PRODUCT_ID) not in {
+        (edge["from"], edge["to"]) for edge in relationships if edge["type"] == "SUPPLIES"
+    }

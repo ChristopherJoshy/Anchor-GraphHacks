@@ -127,7 +127,7 @@ If the live tool calls take the full 3:30, keep the spoken explanation calm and 
 **1. Trigger and trace**
 
 ~~~text
-Use Anchor's SIMULATION tools only. Trigger a severity-5 SUPPLIER_OUTAGE for scenario SCENARIO-SILICON-CASCADE at SUP-TAIWAN-FOUNDRY. Then assess the cascade. Show the affected ORDER-SILICON-1000 and the exact shared-dependency paths for SUP-BACKUP-B and SUP-BACKUP-C. Separate returned graph facts from your explanation.
+Use Anchor's SIMULATION tools only. First confirm the clean baseline shows SUP-TAIWAN-FOUNDRY available with positive capacity. Trigger a severity-5 SUPPLIER_OUTAGE for scenario SCENARIO-SILICON-CASCADE at SUP-TAIWAN-FOUNDRY, then assess the cascade using the incident ID returned by that trigger call. Show the affected ORDER-SILICON-1000, confirm the foundry and its supply edge now show unavailable with zero capacity, and show the exact shared-dependency paths for SUP-PRIMARY, SUP-BACKUP-B, and SUP-BACKUP-C. Separate returned graph facts from your explanation.
 ~~~
 
 Expected tools: **anchor_trigger_incident**, then **anchor_assess_cascade**. Show the returned incident ID, path evidence, and affected order rather than narrating a guessed result.
@@ -135,18 +135,18 @@ Expected tools: **anchor_trigger_incident**, then **anchor_assess_cascade**. Sho
 **2. Solve and stress-check**
 
 ~~~text
-Using that incident ID, find recovery plans. Show the actual source allocations, unmet quantity, objective cost, graph version, and the count and results of the bounded failure scenarios. Explain why SUP-BACKUP-B and SUP-BACKUP-C do or do not qualify, with their graph paths. Do not call the tested set a guarantee.
+Use only the incident ID returned in the current run; if it is missing, retrieve current history and stop rather than reusing an earlier ID. Find recovery plans. Show source allocations, unmet quantity, objective cost with currency and minor-unit scale, graph version, and the count and results of the bounded failure scenarios. Show `excluded_sources` and their returned reasons and graph paths. Do not call the tested set a guarantee.
 ~~~
 
-Expected tool: **anchor_find_recovery_plans**. The checked-in baseline computes 350 inventory + 650 from independent D, zero unmet, synthetic cost USD 5,850. The benchmark's dependency-blind proposal uses 350 inventory + 600 B + 50 C, but both suppliers are graph-exposed to the failed foundry; after eligibility is enforced that proposal leaves 650 units unmet. These are deterministic fixture outputs, not real-world prices or savings. Report what the live tool returns if it differs.
+Expected tool: **anchor_find_recovery_plans**. The checked-in baseline computes 350 inventory + 650 from independent D, zero unmet, synthetic cost USD 5,850 (585,000 cents; 100 cents per USD). The benchmark's dependency-blind proposal uses 350 inventory + 600 B + 50 C, but both suppliers are graph-exposed to the failed foundry; after eligibility is enforced that proposal leaves 650 units unmet. These are deterministic fixture outputs, not real-world prices or savings. Report what the live tool returns if it differs.
 
 **3. Execute through a real simulated rejection**
 
 ~~~text
-Inject one simulated reservation rejection for SUP-INDEPENDENT-D. Then execute the selected plan in SIMULATION. Show the failed attempt's returned verified=false, rejected receipt, and one bounded replan. Call anchor_verify_recovery for the successful run ID and confirm the persisted allocations and order status from the mock ERP.
+Inject one simulated reservation rejection for SUP-INDEPENDENT-D. Then execute the selected plan in SIMULATION with `max_replans=1`. Show the failed attempt's returned verified=false, rejected receipt, and one bounded replan. Call anchor_verify_recovery for the successful run ID and confirm the persisted allocations and order status from the mock ERP. For a strict stop-after-failure run, set `max_replans=0` and do not claim the rejected action recovered.
 ~~~
 
-Expected tools: **anchor_inject_simulated_failure**, **anchor_execute_recovery**, and **anchor_verify_recovery**. The integration fixture expects one rejected attempt followed by one successful replan. Show the actual receipt and verification response. This is a local simulation, not a purchase order.
+Expected tools: **anchor_inject_simulated_failure**, **anchor_execute_recovery**, and **anchor_verify_recovery**. The integration fixture expects one rejected attempt followed by one successful replan when `max_replans=1`. Show the actual receipt and verification response. This is a local simulation, not a purchase order.
 
 **4. Change the constraint and adapt**
 
