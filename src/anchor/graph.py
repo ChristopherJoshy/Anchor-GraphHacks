@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import Any, ClassVar
 from uuid import uuid4
 
 from falkordb import FalkorDB
@@ -21,16 +21,30 @@ class GraphUnavailableError(RuntimeError):
 
 class GraphStore:
     LABELS = (
-        "Supplier", "Facility", "Product", "Inventory", "Order", "Customer", "Location",
-        "Contract", "RouteLeg", "Incident", "Evidence", "RecoveryPlan", "Action",
-        "ExecutionReceipt", "Scenario", "Policy", "Organization",
+        "Supplier",
+        "Facility",
+        "Product",
+        "Inventory",
+        "Order",
+        "Customer",
+        "Location",
+        "Contract",
+        "RouteLeg",
+        "Incident",
+        "Evidence",
+        "RecoveryPlan",
+        "Action",
+        "ExecutionReceipt",
+        "Scenario",
+        "Policy",
+        "Organization",
     )
     # Labels and relationship types are fixed internal constants; all record values are parameters.
-    NODE_QUERIES = {
+    NODE_QUERIES: ClassVar[dict[str, str]] = {
         label: f"UNWIND $rows AS row MERGE (n:{label} {{id: row.id}}) SET n += row"
         for label in LABELS
     }
-    RELATIONSHIP_QUERIES = {
+    RELATIONSHIP_QUERIES: ClassVar[dict[str, str]] = {
         "DEPENDS_ON": "MATCH (a {id: row.from}), (b {id: row.to}) MERGE (a)-[r:DEPENDS_ON]->(b) SET r.source = row.source",
         "OPERATES": "MATCH (a:Supplier {id: row.from}), (b:Facility {id: row.to}) MERGE (a)-[r:OPERATES]->(b) SET r.source = row.source",
         "SUPPLIES": "MATCH (a:Supplier {id: row.from}), (b:Product {id: row.to}) MERGE (a)-[r:SUPPLIES]->(b) SET r.capacity = row.capacity, r.unit = row.unit, r.unit_price_minor = row.unit_price_minor, r.currency = row.currency, r.lead_days = row.lead_days, r.available = row.available, r.source = row.source, r.verified = row.verified",
@@ -109,7 +123,9 @@ class GraphStore:
             self._connect()
             return self._db.connection.ping()
         except Exception as exc:
-            raise GraphUnavailableError(f"FalkorDB is unavailable at the configured endpoint: {exc}") from exc
+            raise GraphUnavailableError(
+                f"FalkorDB is unavailable at the configured endpoint: {exc}"
+            ) from exc
 
     def version(self) -> int:
         rows = self._query(
@@ -136,34 +152,34 @@ class GraphStore:
                 self._graph.delete()
             self._graph = self._db.select_graph(self._graph_name)
         except Exception as exc:
-            raise GraphUnavailableError(f"Could not reset graph '{self._graph_name}': {exc}") from exc
+            raise GraphUnavailableError(
+                f"Could not reset graph '{self._graph_name}': {exc}"
+            ) from exc
         records = build_seed_records()
         for label in self.LABELS:
             rows = records.get(label, [])
             if rows:
                 self._query(self.NODE_QUERIES[label], {"rows": rows})
-        by_id = {
-            row["id"]: row
-            for label in self.LABELS
-            for row in records.get(label, [])
-        }
+        by_id = {row["id"]: row for label in self.LABELS for row in records.get(label, [])}
         relationship_rows: dict[str, list[dict[str, Any]]] = {}
         for relation in records["relationships"]:
             source = by_id.get(relation["from"], {})
             rel = dict(relation)
             rel.update(
                 source=source.get("source", "synthetic-fixed-seed-v1"),
-                capacity=source.get("capacity", 0), unit="unit",
-                unit_price_minor=source.get("unit_price_minor", 0), currency="USD",
-                lead_days=source.get("lead_days", 0), available=source.get("available", True),
-                verified=source.get("verified", True), status=source.get("status", "APPROVED"),
+                capacity=source.get("capacity", 0),
+                unit="unit",
+                unit_price_minor=source.get("unit_price_minor", 0),
+                currency="USD",
+                lead_days=source.get("lead_days", 0),
+                available=source.get("available", True),
+                verified=source.get("verified", True),
+                status=source.get("status", "APPROVED"),
                 quantity_per_output=1,
             )
             relationship_rows.setdefault(relation["type"], []).append(rel)
         for kind, rows in relationship_rows.items():
-            self._query(
-                f"UNWIND $rows AS row {self.RELATIONSHIP_QUERIES[kind]}", {"rows": rows}
-            )
+            self._query(f"UNWIND $rows AS row {self.RELATIONSHIP_QUERIES[kind]}", {"rows": rows})
         for query in (
             "CREATE INDEX FOR (n:Supplier) ON (n.id)",
             "CREATE INDEX FOR (n:Incident) ON (n.id)",
@@ -172,12 +188,10 @@ class GraphStore:
         ):
             try:
                 self._query(query)
-            except Exception:
+            except GraphUnavailableError:
                 # Index syntax/support varies by FalkorDB version; indexed identifiers are an optimization.
                 pass
-        counts = self._query(
-            "MATCH (n) RETURN labels(n)[0] AS label, count(n) AS count LIMIT 100"
-        )
+        counts = self._query("MATCH (n) RETURN labels(n)[0] AS label, count(n) AS count LIMIT 100")
         return {
             "graph_name": self._graph_name,
             "scenario_id": SCENARIO_ID,
@@ -187,7 +201,12 @@ class GraphStore:
         }
 
     def set_capacity(self, entity_id: str, capacity: int) -> int:
-        if not entity_id or isinstance(capacity, bool) or not isinstance(capacity, int) or capacity < 0:
+        if (
+            not entity_id
+            or isinstance(capacity, bool)
+            or not isinstance(capacity, int)
+            or capacity < 0
+        ):
             raise ValueError("entity_id must be set and capacity must be a non-negative integer")
         rows = self._query(
             "MATCH (n {id: $entity_id}) WHERE n:Supplier OR n:Facility "
@@ -210,14 +229,13 @@ class GraphStore:
         if not all((scenario_id, entity_id, incident_type)):
             raise ValueError("scenario_id, entity_id and incident_type are required")
         exists = self._query(
-            "MATCH (s:Scenario {id: $scenario_id}), (n {id: $entity_id}) "
-            "RETURN s.id, n.id LIMIT 1",
+            "MATCH (s:Scenario {id: $scenario_id}), (n {id: $entity_id}) RETURN s.id, n.id LIMIT 1",
             {"scenario_id": scenario_id, "entity_id": entity_id},
         )
         if not exists:
             raise ValueError("scenario or affected entity does not exist")
         incident_id = f"INC-{uuid4().hex[:12].upper()}"
-        created = datetime.now(timezone.utc).isoformat()
+        created = datetime.now(UTC).isoformat()
         evidence_id = "EVIDENCE-SILICON-SYNTHETIC"
         params = {
             "id": incident_id,
@@ -236,7 +254,8 @@ class GraphStore:
             "incident_type: $incident_type, severity: $severity, status: $status, mode: $mode, "
             "created_at: $created_at, source: $source}) "
             "WITH i MATCH (n {id: $entity_id}), (e:Evidence {id: $evidence_id}) "
-            "CREATE (i)-[:AFFECTS]->(n), (i)-[:SUPPORTED_BY]->(e)", params
+            "CREATE (i)-[:AFFECTS]->(n), (i)-[:SUPPORTED_BY]->(e)",
+            params,
         )
         graph_version = self._bump_version()
         self._query(
@@ -258,7 +277,14 @@ class GraphStore:
         if not rows:
             return None
         plan = self._props(rows[0][0])
-        for field in ("allocations", "objective", "tested_scenarios", "evidence_ids", "assumptions"):
+        for field in (
+            "allocations",
+            "objective",
+            "tested_scenarios",
+            "evidence_ids",
+            "assumptions",
+            "worst_counterexample",
+        ):
             value = plan.get(field)
             if isinstance(value, str):
                 try:
@@ -266,6 +292,29 @@ class GraphStore:
                 except json.JSONDecodeError:
                     pass
         return plan
+
+    def record_run_outcome(self, plan_id: str, incident_id: str, status: str) -> None:
+        if status not in {
+            "RECOVERED",
+            "PARTIALLY_RECOVERED",
+            "EXECUTION_FAILED",
+            "NEEDS_HUMAN_REVIEW",
+        }:
+            raise ValueError("unsupported recovery outcome status")
+        self._query(
+            "MATCH (p:RecoveryPlan {id: $plan_id})-[:CONTAINS]->(a:Action) "
+            "SET a.status = $status WITH p "
+            "MATCH (i:Incident {id: $incident_id}) SET i.status = $status",
+            {"plan_id": plan_id, "incident_id": incident_id, "status": status},
+        )
+
+    def run_receipts(self, run_id: str) -> list[dict[str, Any]]:
+        rows = self._query(
+            "MATCH (r:ExecutionReceipt {run_id: $run_id}) "
+            "RETURN properties(r) AS receipt ORDER BY r.created_at LIMIT 100",
+            {"run_id": run_id},
+        )
+        return [self._props(row[0]) for row in rows]
 
     def read_scenario_state(self, scenario_id: str = SCENARIO_ID) -> dict[str, Any]:
         rows = self._query(
@@ -279,7 +328,13 @@ class GraphStore:
             "RETURN labels(n)[0] AS label, properties(n) AS props LIMIT $limit",
             {
                 "id": scenario_id,
-                "ids": [INCIDENT_ENTITY_ID, "SUP-INDEPENDENT-D", "SUP-INDEPENDENT-E", "INV-MCU-350", "ORDER-SILICON-1000"],
+                "ids": [
+                    INCIDENT_ENTITY_ID,
+                    "SUP-INDEPENDENT-D",
+                    "SUP-INDEPENDENT-E",
+                    "INV-MCU-350",
+                    "ORDER-SILICON-1000",
+                ],
                 "limit": 200,
             },
         )
@@ -289,6 +344,11 @@ class GraphStore:
         return state
 
     def network_summary(self) -> dict[str, Any]:
+        detail = self._query(
+            "MATCH (n) OPTIONAL MATCH (n)-[r]->(m) "
+            "RETURN properties(n) AS node, type(r) AS relation, properties(r) AS edge, "
+            "properties(m) AS target LIMIT 400"
+        )
         rows = self._query(
             "MATCH (n) OPTIONAL MATCH (n)-[r]->() "
             "RETURN labels(n)[0] AS label, count(DISTINCT n) AS nodes, "
@@ -300,11 +360,34 @@ class GraphStore:
         countries = self._query(
             "MATCH (l:Location) RETURN DISTINCT l.country AS country ORDER BY country LIMIT 100"
         )
+        nodes: dict[str, dict[str, Any]] = {}
+        relationships: list[dict[str, Any]] = []
+        for node, relation, edge, target in detail:
+            node_props = self._props(node)
+            if node_props.get("id"):
+                nodes[str(node_props["id"])] = node_props
+            target_props = self._props(target)
+            if target_props.get("id"):
+                nodes[str(target_props["id"])] = target_props
+            if relation and node_props.get("id") and target_props.get("id"):
+                relationships.append(
+                    {
+                        "from": node_props["id"],
+                        "to": target_props["id"],
+                        "type": relation,
+                        **self._props(edge),
+                    }
+                )
         return {
             "graph_name": self._graph_name,
             "version": self.version(),
             "entities": {str(row[0]): int(row[1]) for row in rows},
+            "entity_count": sum(int(row[1]) for row in rows),
             "relationships": sum(int(row[2]) for row in rows),
+            "relationship_count": sum(int(row[2]) for row in rows),
+            "entity_records": list(nodes.values())[:200],
+            "relationship_records": relationships[:400],
+            "locations": [node for node in nodes.values() if "lat" in node and "lon" in node],
             "countries": [row[0] for row in countries],
             "incidents": [self._props(row[0]) for row in incidents],
             "provenance": "Synthetic demonstration data; supplier relationships are fictional.",
@@ -343,7 +426,9 @@ class GraphStore:
             "affected_orders": [
                 {"order": self._props(row[0]), "product_id": row[1]} for row in orders
             ],
-            "shared_dependency_paths": [{"supplier_id": row[0], "path": row[1]} for row in upstream],
+            "shared_dependency_paths": [
+                {"supplier_id": row[0], "path": row[1]} for row in upstream
+            ],
             "assumptions": ["All seed-network operational records are synthetic."],
         }
 
@@ -376,24 +461,43 @@ class GraphStore:
         results = []
         for supplier, supply, order, product_id, contract_status in rows:
             s, edge, o = self._props(supplier), self._props(supply), self._props(order)
-            results.append({
-                "id": s["id"], "name": s.get("name"), "kind": "supplier", "product_id": product_id,
-                "capacity": int(edge.get("capacity", s.get("capacity", 0))),
-                "unit_price_minor": int(edge.get("unit_price_minor", s.get("unit_price_minor", 0))),
-                "currency": edge.get("currency", "USD"), "lead_days": int(edge.get("lead_days", s.get("lead_days", 0))),
-                "available": bool(edge.get("available", s.get("available", False))),
-                "contract_approved": contract_status == "APPROVED", "order_id": o["id"],
-                "evidence_ids": ["EVIDENCE-SILICON-SYNTHETIC"],
-            })
-        for inventory, order, product_id in inventory:
-            v, o = self._props(inventory), self._props(order)
+            results.append(
+                {
+                    "id": s["id"],
+                    "name": s.get("name"),
+                    "kind": "supplier",
+                    "product_id": product_id,
+                    "capacity": int(edge.get("capacity", s.get("capacity", 0))),
+                    "unit_price_minor": int(
+                        edge.get("unit_price_minor", s.get("unit_price_minor", 0))
+                    ),
+                    "currency": edge.get("currency", "USD"),
+                    "lead_days": int(edge.get("lead_days", s.get("lead_days", 0))),
+                    "available": bool(edge.get("available", s.get("available", False))),
+                    "contract_approved": contract_status == "APPROVED",
+                    "order_id": o["id"],
+                    "evidence_ids": ["EVIDENCE-SILICON-SYNTHETIC"],
+                }
+            )
+        for inventory_row, order, product_id in inventory:
+            v, o = self._props(inventory_row), self._props(order)
             qty = max(0, int(v.get("quantity", 0)) - int(v.get("reserved", 0)))
-            results.append({
-                "id": v["id"], "name": v["id"], "kind": "inventory", "product_id": product_id,
-                "capacity": qty, "unit_price_minor": 0, "currency": "USD", "lead_days": 0,
-                "available": qty > 0, "contract_approved": True, "order_id": o["id"],
-                "evidence_ids": ["EVIDENCE-SILICON-SYNTHETIC"],
-            })
+            results.append(
+                {
+                    "id": v["id"],
+                    "name": v["id"],
+                    "kind": "inventory",
+                    "product_id": product_id,
+                    "capacity": qty,
+                    "unit_price_minor": 0,
+                    "currency": "USD",
+                    "lead_days": 0,
+                    "available": qty > 0,
+                    "contract_approved": True,
+                    "order_id": o["id"],
+                    "evidence_ids": ["EVIDENCE-SILICON-SYNTHETIC"],
+                }
+            )
         return results
 
     def failure_scenarios(self, incident_id: str) -> list[dict[str, Any]]:
@@ -415,35 +519,45 @@ class GraphStore:
             )
             relevant = sorted(set(relevant + [row[0] for row in possible]))
         affected = self._query(
-            "MATCH (i:Incident {id: $id})-[:AFFECTS]->(n) RETURN n.id LIMIT 100", {"id": incident_id}
+            "MATCH (i:Incident {id: $id})-[:AFFECTS]->(n) RETURN n.id LIMIT 100",
+            {"id": incident_id},
         )
         node_ids = sorted(set(relevant + [row[0] for row in affected]))
         scenarios: list[dict[str, Any]] = []
         for entity_id in node_ids:
-            scenarios.append(FailureScenario(
-                id=f"FAIL-{entity_id}", failed_entity_ids=[entity_id], paths=[[entity_id]],
-                label=f"Single-node failure: {entity_id}",
-            ).model_dump(mode="json"))
+            scenarios.append(
+                FailureScenario(
+                    id=f"FAIL-{entity_id}",
+                    failed_entity_ids=[entity_id],
+                    paths=[[entity_id]],
+                    label=f"Single-node failure: {entity_id}",
+                ).model_dump(mode="json")
+            )
         shared = self._query(self.SHARED_UPSTREAM_CYPHER, {"limit": 500})
         for left, right, shared_id, path_left, path_right in shared:
             if left not in relevant and right not in relevant:
                 continue
-            scenarios.append(FailureScenario(
-                id=f"FAIL-PAIR-{left}-{right}", failed_entity_ids=[left, right],
-                paths=[path_left, path_right],
-                label=f"Correlated supplier failure via shared upstream {shared_id}",
-            ).model_dump(mode="json"))
+            scenarios.append(
+                FailureScenario(
+                    id=f"FAIL-PAIR-{left}-{right}",
+                    failed_entity_ids=[left, right],
+                    paths=[path_left, path_right],
+                    label=f"Correlated supplier failure via shared upstream {shared_id}",
+                ).model_dump(mode="json")
+            )
         return scenarios
 
     def persist_plan(self, plan: RecoveryPlan | dict[str, Any]) -> dict[str, Any]:
         payload = plan.model_dump(mode="json") if isinstance(plan, RecoveryPlan) else dict(plan)
         if not payload.get("id") or not payload.get("incident_id"):
             raise ValueError("plan must include id and incident_id")
-        payload.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+        payload.setdefault("created_at", datetime.now(UTC).isoformat())
         payload["allocations_json"] = json.dumps(payload.get("allocations", []), sort_keys=True)
         payload["objective_json"] = json.dumps(payload.get("objective", {}), sort_keys=True)
         payload["evidence_ids_json"] = json.dumps(payload.get("evidence_ids", []), sort_keys=True)
-        payload["tested_scenarios_json"] = json.dumps(payload.get("tested_scenarios", []), sort_keys=True)
+        payload["tested_scenarios_json"] = json.dumps(
+            payload.get("tested_scenarios", []), sort_keys=True
+        )
         graph_payload = {
             key: json.dumps(value, sort_keys=True) if isinstance(value, (dict, list)) else value
             for key, value in payload.items()
@@ -456,9 +570,12 @@ class GraphStore:
         for index, allocation in enumerate(payload.get("allocations", [])):
             action = {
                 "id": f"{payload['id']}-ACTION-{index + 1:03d}",
-                "plan_id": payload["id"], "incident_id": payload["incident_id"],
-                "status": "PLANNED", "allocation_json": json.dumps(allocation, sort_keys=True),
-                "source_id": allocation.get("source_id"), "order_id": allocation.get("order_id"),
+                "plan_id": payload["id"],
+                "incident_id": payload["incident_id"],
+                "status": "PLANNED",
+                "allocation_json": json.dumps(allocation, sort_keys=True),
+                "source_id": allocation.get("source_id"),
+                "order_id": allocation.get("order_id"),
                 "quantity": int(allocation.get("quantity", 0)),
             }
             self._query(
@@ -473,7 +590,7 @@ class GraphStore:
             raise ValueError("run_id is required")
         receipt_id = str(receipt.get("id") or f"RECEIPT-{uuid4().hex[:12].upper()}")
         payload = dict(receipt, id=receipt_id, run_id=run_id)
-        payload.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+        payload.setdefault("created_at", datetime.now(UTC).isoformat())
         graph_payload = {
             key: json.dumps(value, sort_keys=True) if isinstance(value, (dict, list)) else value
             for key, value in payload.items()
@@ -498,6 +615,7 @@ class GraphStore:
         rows = self._query(
             "MATCH (n) WHERE n:Incident OR n:RecoveryPlan OR n:Action OR n:ExecutionReceipt "
             "RETURN labels(n)[0] AS kind, properties(n) AS props "
-            "ORDER BY n.created_at DESC LIMIT $limit", {"limit": limit}
+            "ORDER BY n.created_at DESC LIMIT $limit",
+            {"limit": limit},
         )
         return [{"kind": row[0], **self._props(row[1])} for row in rows]

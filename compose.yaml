@@ -1,0 +1,17 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:v4.20.4
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - anchor_falkordb:/var/lib/falkordb/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+volumes:
+  anchor_falkordb:

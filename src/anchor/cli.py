@@ -1,10 +1,12 @@
 """Local Anchor operator commands."""
 
 import json
+
 import typer
 import uvicorn
 
 from anchor.config import settings
+from anchor.graph import GraphUnavailableError
 from anchor.service import AnchorService
 
 app = typer.Typer(no_args_is_help=True, help="Anchor synthetic graph recovery agent")
@@ -21,7 +23,7 @@ def doctor():
     """Check FalkorDB and local mock ERP readiness."""
     try:
         report = AnchorService().health()
-    except Exception as exc:
+    except GraphUnavailableError as exc:
         report = {"ready": False, "mode": "SIMULATION", "error": str(exc)}
     typer.echo(json.dumps(report, indent=2))
     if not report.get("ready"):

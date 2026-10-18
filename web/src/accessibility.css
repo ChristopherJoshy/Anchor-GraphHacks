@@ -1,0 +1,2 @@
+.globe-loading{height:355px;display:flex;align-items:center;justify-content:center;gap:9px;color:#96aaa7;font:11px var(--mono)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

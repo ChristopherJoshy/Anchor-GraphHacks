@@ -1,0 +1,17 @@
+.venv/
+.uv-cache/
+.env
+__pycache__/
+.pytest_cache/
+test-results*/
+pytest-cache-files-*/
+.ruff_cache/
+.mypy_cache/
+*.py[cod]
+data/*.sqlite3
+data/*.db
+web/node_modules/
+web/dist/
+*.log
+*.mp4
+*.webm

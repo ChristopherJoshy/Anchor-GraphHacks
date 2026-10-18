@@ -32,7 +32,13 @@ def _allocation_model(
     failed_entity_ids: set[str],
     stress_scenarios: Sequence[FailureScenario],
     prior_supplier_ids: set[str],
-) -> tuple[cp_model.CpModel, dict[tuple[str, str], cp_model.IntVar], dict[str, cp_model.IntVar], dict[str, cp_model.LinearExpr | int], dict[str, cp_model.IntVar]]:
+) -> tuple[
+    cp_model.CpModel,
+    dict[tuple[str, str], cp_model.IntVar],
+    dict[str, cp_model.IntVar],
+    dict[str, cp_model.LinearExpr | int],
+    dict[str, cp_model.IntVar],
+]:
     model = cp_model.CpModel()
     source_by_id = {source.id: source for source in sources}
     x: dict[tuple[str, str], cp_model.IntVar] = {}
@@ -42,7 +48,9 @@ def _allocation_model(
         vars_for_order = []
         for source in sources:
             if _eligible(source, order, failed_entity_ids):
-                var = model.NewIntVar(0, min(source.capacity, order.quantity), f"x_{source.id}_{order.id}")
+                var = model.NewIntVar(
+                    0, min(source.capacity, order.quantity), f"x_{source.id}_{order.id}"
+                )
                 x[(source.id, order.id)] = var
                 vars_for_order.append(var)
         model.Add(sum(vars_for_order) + unmet[order.id] == order.quantity)
@@ -78,13 +86,16 @@ def _allocation_model(
             scenario_unmet[order.id] = remaining
             recovered = []
             survivors = [
-                var for (sid, oid), var in x.items()
-                if oid == order.id and sid not in failed
+                var for (sid, oid), var in x.items() if oid == order.id and sid not in failed
             ]
             for source in sources:
                 if not _eligible(source, order, failed_entity_ids | failed):
                     continue
-                var = model.NewIntVar(0, min(source.capacity, order.quantity), f"rec_{scenario.id}_{source.id}_{order.id}")
+                var = model.NewIntVar(
+                    0,
+                    min(source.capacity, order.quantity),
+                    f"rec_{scenario.id}_{source.id}_{order.id}",
+                )
                 recourse[(source.id, order.id)] = var
                 recovered.append(var)
             model.Add(sum(survivors) + sum(recovered) + remaining == order.quantity)
@@ -100,9 +111,13 @@ def _allocation_model(
                 else:
                     model.Add(sum(rec_vars) == 0)
         weighted_stress = sum(order.priority * scenario_unmet[order.id] for order in orders)
-        worst = model.NewIntVar(0, sum(o.priority * o.quantity for o in orders), f"score_{scenario.id}")
+        worst = model.NewIntVar(
+            0, sum(o.priority * o.quantity for o in orders), f"score_{scenario.id}"
+        )
         model.Add(worst == weighted_stress)
-        (pair_shortfalls if len(scenario.failed_entity_ids) == 2 else single_shortfalls).append(worst)
+        (pair_shortfalls if len(scenario.failed_entity_ids) == 2 else single_shortfalls).append(
+            worst
+        )
 
     bound = sum(order.priority * order.quantity for order in orders)
     worst_single = model.NewIntVar(0, bound, "worst_single")
@@ -120,8 +135,11 @@ def _allocation_model(
 
 
 def _solve_lexicographic(
-    sources: Sequence[Source], orders: Sequence[OrderDemand], failed_entity_ids: set[str],
-    scenarios: Sequence[FailureScenario], prior_supplier_ids: set[str],
+    sources: Sequence[Source],
+    orders: Sequence[OrderDemand],
+    failed_entity_ids: set[str],
+    scenarios: Sequence[FailureScenario],
+    prior_supplier_ids: set[str],
 ) -> tuple[list[Allocation], dict[str, int], dict[str, int]]:
     model, variables, unmet_vars, objectives, _ = _allocation_model(
         sources, orders, failed_entity_ids, scenarios, prior_supplier_ids
@@ -136,7 +154,9 @@ def _solve_lexicographic(
         model.Minimize(expr)
         status = solver.Solve(model)
         if status != cp_model.OPTIMAL:
-            raise RuntimeError(f"CP-SAT did not prove the lexicographic optimum (status={solver.StatusName(status)})")
+            raise RuntimeError(
+                f"CP-SAT did not prove the lexicographic optimum (status={solver.StatusName(status)})"
+            )
         optimum = int(solver.Value(expr)) if not isinstance(expr, int) else expr
         values[key] = optimum
         model.Add(expr == optimum)
@@ -150,7 +170,8 @@ def _solve_lexicographic(
             unit_price_minor=source_by_id[sid].unit_price_minor,
             lead_days=source_by_id[sid].lead_days,
         )
-        for (sid, oid), var in sorted(variables.items()) if solver.Value(var) > 0
+        for (sid, oid), var in sorted(variables.items())
+        if solver.Value(var) > 0
     ]
     residuals = {oid: solver.Value(var) for oid, var in unmet_vars.items()}
     return allocations, residuals, values
@@ -232,10 +253,16 @@ def optimize_recovery(
     if any(s.capacity < 0 or s.unit_price_minor < 0 for s in sources):
         raise ValueError("source capacity and minor-unit price must be non-negative")
     candidates = [
-        FailureScenario(id=f"single:{s.id}", failed_entity_ids=[s.id], label=f"Single outage: {s.label}")
+        FailureScenario(
+            id=f"single:{s.id}", failed_entity_ids=[s.id], label=f"Single outage: {s.label}"
+        )
         for s in sorted(sources, key=lambda item: item.id)
         if s.available and s.id not in failed
-    ] + [scenario for scenario in correlated_scenarios if not (set(scenario.failed_entity_ids) & failed)]
+    ] + [
+        scenario
+        for scenario in correlated_scenarios
+        if not (set(scenario.failed_entity_ids) & failed)
+    ]
     candidates_by_id = {scenario.id: scenario for scenario in candidates}
     known_source_ids = {source.id for source in sources}
     for scenario in correlated_scenarios:
@@ -253,7 +280,9 @@ def optimize_recovery(
         unseen = [s for s in candidates if s.id not in {item.id for item in selected}]
         if not unseen or added >= max_iterations:
             break
-        scored = [(_scenario_shortfall(s, sources, orders, allocations, failed), s.id, s) for s in unseen]
+        scored = [
+            (_scenario_shortfall(s, sources, orders, allocations, failed), s.id, s) for s in unseen
+        ]
         score, _, counterexample = max(scored, key=lambda item: (item[0], item[1]))
         if score == 0:
             break
@@ -292,7 +321,10 @@ def optimize_recovery(
 
 
 def solve_allocation(
-    sources: Sequence[Source], orders: Sequence[OrderDemand], *, failed_entity_ids: Iterable[str] = ()
+    sources: Sequence[Source],
+    orders: Sequence[OrderDemand],
+    *,
+    failed_entity_ids: Iterable[str] = (),
 ) -> tuple[list[Allocation], dict[str, int]]:
     """Return the minimum-shortfall, then minimum-cost allocation for an impact snapshot."""
     sources = sorted(sources, key=lambda item: item.id)

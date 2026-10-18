@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 SCENARIO_ID = "SCENARIO-SILICON-CASCADE"
 INCIDENT_ENTITY_ID = "SUP-TAIWAN-FOUNDRY"
 TARGET_PRODUCT_ID = "PROD-MCU-001"
@@ -101,7 +100,11 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
     products[0].update(id=TARGET_PRODUCT_ID, name="Microcontroller MCU-001")
 
     customers = [
-        {"id": f"CUS-{i:03d}", "name": f"Synthetic Customer {i:02d}", "country": COUNTRIES[(i * 3) % 15][0]}
+        {
+            "id": f"CUS-{i:03d}",
+            "name": f"Synthetic Customer {i:02d}",
+            "country": COUNTRIES[(i * 3) % 15][0],
+        }
         for i in range(1, 13)
     ]
     orders = [
@@ -186,8 +189,12 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
     ]
     for i, supplier in enumerate(suppliers):
         if supplier["id"] not in {item["from"] for item in dependencies}:
-            dependencies.append({"from": supplier["id"], "to": facilities[i % 20]["id"], "type": "OPERATES"})
-        product_id = TARGET_PRODUCT_ID if supplier["id"] in overrides else products[1 + i % 29]["id"]
+            dependencies.append(
+                {"from": supplier["id"], "to": facilities[i % 20]["id"], "type": "OPERATES"}
+            )
+        product_id = (
+            TARGET_PRODUCT_ID if supplier["id"] in overrides else products[1 + i % 29]["id"]
+        )
         dependencies.append({"from": supplier["id"], "to": product_id, "type": "SUPPLIES"})
     for facility in facilities:
         dependencies.append(
@@ -199,9 +206,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
             else products[1 + int(facility["id"][-3:]) % 29]["id"]
         )
         dependencies.append({"from": facility["id"], "to": product_id, "type": "PRODUCES"})
-    dependencies.append(
-        {"from": "FAC-MCU-ASSEMBLY", "to": "PROD-002", "type": "REQUIRES_INPUT"}
-    )
+    dependencies.append({"from": "FAC-MCU-ASSEMBLY", "to": "PROD-002", "type": "REQUIRES_INPUT"})
     for inventory in inventories:
         dependencies.extend(
             [
@@ -213,11 +218,17 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         dependencies.extend(
             [
                 {"from": order["id"], "to": order["product_id"], "type": "REQUIRES"},
-                {"from": order["id"], "to": customers[(int(order["id"][-3:]) - 1) % 12]["id"], "type": "DELIVERED_TO"},
+                {
+                    "from": order["id"],
+                    "to": customers[(int(order["id"][-3:]) - 1) % 12]["id"],
+                    "type": "DELIVERED_TO",
+                },
             ]
         )
     for contract in contracts:
-        dependencies.append({"from": contract["id"], "to": contract["supplier_id"], "type": "APPROVES"})
+        dependencies.append(
+            {"from": contract["id"], "to": contract["supplier_id"], "type": "APPROVES"}
+        )
     for route in route_legs:
         dependencies.extend(
             [

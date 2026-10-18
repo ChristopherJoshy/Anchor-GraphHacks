@@ -27,8 +27,13 @@ def anchor_network_summary() -> dict:
 
 
 @mcp.tool
-def anchor_trigger_incident(scenario_id: str, entity_id: str, incident_type: str = "SUPPLIER_OUTAGE",
-                            severity: int = Field(default=5, ge=1, le=5), mode: str = "SIMULATION") -> dict:
+def anchor_trigger_incident(
+    scenario_id: str,
+    entity_id: str,
+    incident_type: str = "SUPPLIER_OUTAGE",
+    severity: int = Field(default=5, ge=1, le=5),
+    mode: str = "SIMULATION",
+) -> dict:
     """Create a synthetic incident in the selected scenario."""
     return service.trigger(scenario_id, entity_id, incident_type, severity, mode)
 
@@ -40,13 +45,17 @@ def anchor_assess_cascade(incident_id: str, max_depth: int = Field(default=6, ge
 
 
 @mcp.tool
-def anchor_find_recovery_plans(incident_id: str, max_iterations: int = Field(default=8, ge=0, le=16)) -> dict:
+def anchor_find_recovery_plans(
+    incident_id: str, max_iterations: int = Field(default=8, ge=0, le=16)
+) -> dict:
     """Solve a deterministic constrained allocation and bounded resilience tests."""
     return service.plan(incident_id, max_iterations).model_dump(mode="json")
 
 
 @mcp.tool
-def anchor_execute_recovery(plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None) -> dict:
+def anchor_execute_recovery(
+    plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
+) -> dict:
     """Execute an authorized plan in the local simulation and read back its results."""
     return service.execute(plan_id, mode, idempotency_key)
 
@@ -70,14 +79,20 @@ def anchor_explain_decision(plan_id: str) -> dict:
 
 
 @mcp.tool
-def anchor_modify_simulation(entity_id: str, value: int = Field(..., ge=0),
-                             kind: str = "supplier_capacity") -> dict:
+def anchor_modify_simulation(
+    entity_id: str, value: int = Field(..., ge=0), kind: str = "supplier_capacity"
+) -> dict:
     """Modify an allowlisted synthetic capacity field; no production data is writable."""
     if kind != "supplier_capacity":
         raise ValueError("Only supplier_capacity is currently supported")
     version = service.graph.set_capacity(entity_id, value)
     service.erp.set_capacity(entity_id, value)
-    return {"entity_id": entity_id, "capacity": value, "graph_version": version, "mode": "SIMULATION"}
+    return {
+        "entity_id": entity_id,
+        "capacity": value,
+        "graph_version": version,
+        "mode": "SIMULATION",
+    }
 
 
 @mcp.tool
@@ -120,43 +135,54 @@ def _call(fn, *args, **kwargs):
     try:
         return fn(*args, **kwargs)
     except Exception as exc:
-        raise HTTPException(status_code=409, detail={"code": type(exc).__name__, "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=409, detail={"code": type(exc).__name__, "message": str(exc)}
+        ) from exc
 
 
 @app.get("/api/health")
-def health(): return _call(service.health)
+def health():
+    return _call(service.health)
 
 
 @app.get("/api/network")
-def network(): return _call(service.network)
+def network():
+    return _call(service.network)
 
 
 @app.get("/api/history")
-def history(): return _call(service.history)
+def history():
+    return _call(service.history)
 
 
 @app.post("/api/demo/reset")
-def reset(): return _call(service.reset)
+def reset():
+    return _call(service.reset)
 
 
 @app.post("/api/incidents")
-def trigger(body: TriggerBody): return _call(service.trigger, **body.model_dump())
+def trigger(body: TriggerBody):
+    return _call(service.trigger, **body.model_dump())
 
 
 @app.post("/api/incidents/{incident_id}/assess")
-def assess(incident_id: str, max_depth: int = 6): return _call(service.assess, incident_id, max_depth)
+def assess(incident_id: str, max_depth: int = 6):
+    return _call(service.assess, incident_id, max_depth)
 
 
 @app.post("/api/incidents/{incident_id}/plans")
-def plans(incident_id: str, body: PlanBody): return _call(lambda: service.plan(incident_id, body.max_iterations).model_dump(mode="json"))
+def plans(incident_id: str, body: PlanBody):
+    return _call(lambda: service.plan(incident_id, body.max_iterations).model_dump(mode="json"))
 
 
 @app.post("/api/plans/{plan_id}/execute")
-def execute(plan_id: str, body: ExecuteBody): return _call(service.execute, plan_id, body.mode, body.idempotency_key)
+def execute(plan_id: str, body: ExecuteBody):
+    return _call(service.execute, plan_id, body.mode, body.idempotency_key)
 
 
 @app.get("/api/runs/{run_id}/verify")
-def verify(run_id: str): return _call(service.verify, run_id)
+def verify(run_id: str):
+    return _call(service.verify, run_id)
 
 
 @app.post("/api/simulation/modify")
@@ -167,7 +193,8 @@ def modify(body: ModificationBody):
 
 
 @app.get("/api/mcp-health")
-def mcp_health(): return {"endpoint": "/mcp", "transport": "streamable-http"}
+def mcp_health():
+    return {"endpoint": "/mcp", "transport": "streamable-http"}
 
 
 app.mount("/mcp", mcp.http_app(path="/"))

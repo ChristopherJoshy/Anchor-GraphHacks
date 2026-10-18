@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -113,7 +113,7 @@ class ERP:
         sources = seed_state.get("sources")
         orders = seed_state.get("orders")
         if not isinstance(sources, list) or not isinstance(orders, list):
-            raise ValueError("seed_state requires sources and orders lists")
+            raise TypeError("seed_state requires sources and orders lists")
         validated_sources = []
         for source in sources:
             kind = source.get("kind")
@@ -121,7 +121,9 @@ class ERP:
                 raise ValueError("source kind must be inventory or supplier")
             validated_sources.append(
                 (
-                    str(source["id"]), kind, str(source["product_id"]),
+                    str(source["id"]),
+                    kind,
+                    str(source["product_id"]),
                     self._nonnegative_int(source["capacity"], "capacity"),
                     int(bool(source.get("available", True))),
                     self._nonnegative_int(source.get("unit_price_minor", 0), "unit_price_minor"),
@@ -132,7 +134,8 @@ class ERP:
         for order in orders:
             validated_orders.append(
                 (
-                    str(order["id"]), str(order["product_id"]),
+                    str(order["id"]),
+                    str(order["product_id"]),
                     self._nonnegative_int(order["quantity"], "order quantity", positive=True),
                     str(order.get("status", "OPEN")),
                     self._nonnegative_int(order.get("scheduled_days", 0), "scheduled_days"),
@@ -156,7 +159,12 @@ class ERP:
             allocations = self.read_allocations()
         for source in sources:
             source["available"] = bool(source["available"])
-        return {"mode": "SIMULATION", "sources": sources, "orders": orders, "allocations": allocations}
+        return {
+            "mode": "SIMULATION",
+            "sources": sources,
+            "orders": orders,
+            "allocations": allocations,
+        }
 
     def set_capacity(self, source_id: str, capacity: int) -> None:
         """Apply an allowlisted simulated capacity change to the ERP source record."""
@@ -183,17 +191,31 @@ class ERP:
                 "SELECT * FROM allocations WHERE idempotency_key = ?", (idempotency_key,)
             ).fetchone()
             if prior:
-                if (prior["source_id"], prior["order_id"], prior["product_id"], prior["quantity"]) != (
-                    item.source_id, item.order_id, item.product_id, item.quantity
-                ):
-                    raise ConflictingAllocation("idempotency key was already used for another allocation")
+                if (
+                    prior["source_id"],
+                    prior["order_id"],
+                    prior["product_id"],
+                    prior["quantity"],
+                ) != (item.source_id, item.order_id, item.product_id, item.quantity):
+                    raise ConflictingAllocation(
+                        "idempotency key was already used for another allocation"
+                    )
                 return self._receipt(prior, "DUPLICATE", "Previously applied request")
 
             conflict = db.execute(
-                "SELECT 1 FROM allocations WHERE source_id = ? AND order_id = ? AND released = 0",
+                "SELECT * FROM allocations WHERE source_id = ? AND order_id = ? AND released = 0",
                 (item.source_id, item.order_id),
             ).fetchone()
             if conflict:
+                if (
+                    conflict["product_id"],
+                    conflict["quantity"],
+                    conflict["unit_price_minor"],
+                    conflict["lead_days"],
+                ) == (item.product_id, item.quantity, item.unit_price_minor, item.lead_days):
+                    return self._receipt(
+                        conflict, "DUPLICATE", "Identical allocation is already active"
+                    )
                 raise ConflictingAllocation("source/order allocation already exists")
             source = db.execute("SELECT * FROM sources WHERE id = ?", (item.source_id,)).fetchone()
             order = db.execute("SELECT * FROM orders WHERE id = ?", (item.order_id,)).fetchone()
@@ -203,7 +225,10 @@ class ERP:
                 raise ERPError("source is unavailable")
             if source["product_id"] != item.product_id or order["product_id"] != item.product_id:
                 raise ERPError("source, order, and allocation product IDs must match")
-            if item.unit_price_minor != source["unit_price_minor"] or item.lead_days != source["lead_days"]:
+            if (
+                item.unit_price_minor != source["unit_price_minor"]
+                or item.lead_days != source["lead_days"]
+            ):
                 raise ERPError("allocation price and lead time must match current source state")
             source_used = db.execute(
                 "SELECT COALESCE(SUM(quantity), 0) FROM allocations WHERE source_id = ? AND released = 0",
@@ -214,20 +239,31 @@ class ERP:
                 (item.order_id,),
             ).fetchone()[0]
             if source_used + item.quantity > source["capacity"]:
-                error = InsufficientInventory if source["kind"] == "inventory" else InsufficientCapacity
+                error = (
+                    InsufficientInventory if source["kind"] == "inventory" else InsufficientCapacity
+                )
                 raise error(f"allocation exceeds remaining {source['kind']} quantity")
             if order_used + item.quantity > order["quantity"]:
                 raise ERPError("allocation exceeds remaining order demand")
 
             receipt_id = str(uuid.uuid4())
-            created = datetime.now(timezone.utc).isoformat()
+            created = datetime.now(UTC).isoformat()
             db.execute(
                 """INSERT INTO allocations
                 (id, idempotency_key, source_id, order_id, product_id, quantity,
                  unit_price_minor, lead_days, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (receipt_id, idempotency_key, item.source_id, item.order_id, item.product_id,
-                 item.quantity, item.unit_price_minor, item.lead_days, created),
+                (
+                    receipt_id,
+                    idempotency_key,
+                    item.source_id,
+                    item.order_id,
+                    item.product_id,
+                    item.quantity,
+                    item.unit_price_minor,
+                    item.lead_days,
+                    created,
+                ),
             )
             total = order_used + item.quantity
             status = "ALLOCATED" if total == order["quantity"] else "PARTIALLY_ALLOCATED"
@@ -242,9 +278,14 @@ class ERP:
     @staticmethod
     def _receipt(row: sqlite3.Row, status: str, detail: str) -> ActionReceipt:
         return ActionReceipt(
-            id=row["id"], action_id=row["id"], idempotency_key=row["idempotency_key"],
-            status=status, source_id=row["source_id"], order_id=row["order_id"],
-            quantity=row["quantity"], created_at=datetime.fromisoformat(row["created_at"]),
+            id=row["id"],
+            action_id=row["id"],
+            idempotency_key=row["idempotency_key"],
+            status=status,
+            source_id=row["source_id"],
+            order_id=row["order_id"],
+            quantity=row["quantity"],
+            created_at=datetime.fromisoformat(row["created_at"]),
             detail=detail,
         )
 
@@ -264,7 +305,9 @@ class ERP:
             ).fetchone()
             if prior:
                 if (prior["source_id"], prior["order_id"]) != (source_id, order_id):
-                    raise ConflictingAllocation("idempotency key was already used for another release")
+                    raise ConflictingAllocation(
+                        "idempotency key was already used for another release"
+                    )
                 prior_row = dict(prior)
                 prior_row["idempotency_key"] = prior["release_key"]
                 prior_row["created_at"] = prior["release_time"]
@@ -275,7 +318,7 @@ class ERP:
             ).fetchone()
             if row is None:
                 raise ERPError("no active allocation exists for this source and order")
-            now = datetime.now(timezone.utc).isoformat()
+            now = datetime.now(UTC).isoformat()
             release_id = str(uuid.uuid4())
             db.execute("UPDATE allocations SET released = 1 WHERE id = ?", (row["id"],))
             db.execute(
@@ -309,6 +352,12 @@ class ERP:
     def verify(self, plan_allocations: list[Allocation | dict[str, Any]]) -> bool:
         """Return whether ERP read-back exactly matches the requested allocation plan."""
         expected = TypeAdapter(list[Allocation]).validate_python(plan_allocations)
-        key = lambda a: (a.source_id, a.order_id, a.product_id, a.quantity,
-                         a.unit_price_minor, a.lead_days)
+        key = lambda a: (
+            a.source_id,
+            a.order_id,
+            a.product_id,
+            a.quantity,
+            a.unit_price_minor,
+            a.lead_days,
+        )
         return sorted(map(key, self.read_allocations())) == sorted(map(key, expected))

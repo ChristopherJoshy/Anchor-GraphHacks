@@ -1,0 +1,40 @@
+ANCHOR PROJECT RULES
+====================
+
+PRODUCT
+-------
+1. Product name: Anchor.
+2. Track: Track 01 — Agents That Act on Connected Data.
+3. Core differentiator: graph-backed recovery evaluated against bounded follow-on failure counterexamples.
+4. The stress suite is finite and declared. Passing means only that these cases passed; it is not formal proof or a guarantee of resilience.
+5. Execution is simulation-only. No live purchasing, payments, production infrastructure changes, or external operational writes.
+
+DATA AND CLAIMS
+---------------
+6. Use only synthetic, public, or team-owned data that may lawfully be used. Demo suppliers, orders, contracts, capacities, and commercial dependencies are synthetic.
+7. Label observed/verified facts, imported facts, synthetic facts, assumptions, inferences, and simulated outcomes distinctly.
+8. Never invent suppliers, capacities, inventory, prices, route times, approvals, or receipts.
+9. Never claim a feature, integration, test, benchmark, participant count, award, or deployment unless directly verified. No unmeasured performance claims.
+10. Do not claim real-time global visibility, academic ESRI equivalence, universal resilience, or formal verification.
+
+GRAPH AND AGENT SAFETY
+---------------------
+11. FalkorDB is the primary graph store and must perform essential dependency traversal, shared-upstream analysis, scenario/evidence retrieval, and persistent graph history.
+12. If FalkorDB is unavailable, graph-dependent features fail clearly. Do not silently substitute an in-memory graph or LLM guesses.
+13. Use fixed parameterized Cypher templates, typed schemas, and explicit allowlists. Never expose arbitrary Cypher, SQL, shell, or unrestricted file access as agent tools.
+14. Treat imported text and model output as untrusted. Policy and hard feasibility constraints are enforced in code, not delegated to an LLM.
+15. Every simulated write requires mode, policy, current-state/version, and idempotency checks; verify it by reading persisted mock ERP state.
+16. Bound retries, scenario search, and replanning. On infeasibility, stale state, missing evidence, or non-convergence, report the condition and unresolved demand.
+
+HACKATHON INTEGRITY
+-------------------
+17. Follow the official rules at https://www.wemakedevs.org/hackathons/falkordb/rules; they supersede this file.
+18. Main coding/design work must be performed during Oct 15–18, 2026 IST. Properly licensed libraries and templates may be reused; do not copy another entry.
+19. Disclose AI assistance. Team members must meaningfully review and understand the implementation and be able to explain graph modeling, queries, architecture, and decisions.
+20. A public repository, setup instructions, graph model, key Cypher/algorithms, demo video, and selected track are required by the official rules. Do not claim readiness until each exists and is checked.
+21. Do not spend money, publish, deploy to public infrastructure, or submit the entry without explicit team authorization.
+
+DOCUMENTATION
+-------------
+22. Keep AGENTS.md, Idea.md, rules.txt, and docs/research.md, docs/product-decision.md, docs/architecture.md, docs/participant-explanation.md, docs/ai-disclosure.md consistent.
+23. Cite direct sources and publication dates. Mark access dates for mutable documentation and GitHub pages. Separate vendor statements, entrant self-description, independent evidence, and our interpretation.

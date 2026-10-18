@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from anchor.erp import ConflictingAllocation, ERP, InsufficientCapacity, InsufficientInventory
+from anchor.erp import ERP, ConflictingAllocation, InsufficientCapacity, InsufficientInventory
 from anchor.models import ActionReceipt, Allocation
 
 
@@ -13,8 +13,14 @@ def erp(tmp_path):
         {
             "sources": [
                 {"id": "warehouse", "kind": "inventory", "product_id": "chip", "capacity": 5},
-                {"id": "supplier", "kind": "supplier", "product_id": "chip", "capacity": 10,
-                 "unit_price_minor": 125, "lead_days": 3},
+                {
+                    "id": "supplier",
+                    "kind": "supplier",
+                    "product_id": "chip",
+                    "capacity": 10,
+                    "unit_price_minor": 125,
+                    "lead_days": 3,
+                },
             ],
             "orders": [{"id": "order-1", "product_id": "chip", "quantity": 10}],
         }
@@ -24,8 +30,12 @@ def erp(tmp_path):
 
 def allocation(source_id: str, quantity: int, price: int = 0, lead: int = 0) -> Allocation:
     return Allocation(
-        source_id=source_id, order_id="order-1", product_id="chip", quantity=quantity,
-        unit_price_minor=price, lead_days=lead,
+        source_id=source_id,
+        order_id="order-1",
+        product_id="chip",
+        quantity=quantity,
+        unit_price_minor=price,
+        lead_days=lead,
     )
 
 
