@@ -4,7 +4,7 @@ This guide describes the intended system. Before presenting, participants must c
 
 ## The one-minute explanation
 
-Anchor is a local simulation agent for supply-chain disruptions. When a fictional supplier fails, it uses FalkorDB to follow dependencies across supplier tiers and orders. That matters because two apparent replacements can share the same failed upstream source. A deterministic optimizer finds a feasible allocation. Anchor then tests that candidate against a bounded set of additional failures derived from the graph. If it finds a failure path that defeats the candidate, it shows the path and replans. It applies only synthetic changes to a local mock ERP and reads the state back before reporting success.
+Anchor is a local simulation agent for supply-chain disruptions. When a fictional supplier fails, it uses FalkorDB to follow dependencies across supplier tiers and orders. That matters because two apparent replacements can share the same failed upstream source; the path changes which supplier capacity is eligible for allocation. A deterministic optimizer finds a feasible allocation. Anchor then tests that candidate against a bounded set of additional failures derived from the graph. If it finds a failure path that defeats the candidate, it shows the path and replans. It applies only synthetic changes to a local mock ERP and reads the state back before reporting success.
 
 ## Why FalkorDB is central
 

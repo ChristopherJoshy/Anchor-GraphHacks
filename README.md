@@ -1,10 +1,12 @@
 # Anchor
 
-**Recover. Challenge the recovery. Verify.**
+**Find the shared failure. Recover. Test what breaks next.**
 
-Anchor is a graph-native supply-chain recovery agent. It traces hidden shared dependencies in FalkorDB, computes a constrained recovery, stress-tests that plan against bounded follow-on failures, and verifies simulated actions against persistent ERP state.
+Anchor is a graph-native recovery agent for interconnected supply networks. It uses FalkorDB to find when apparent backups share the same upstream failure, computes a feasible allocation, challenges it with a bounded set of follow-on failures, and verifies simulated actions against persistent ERP state.
 
 > All suppliers, contracts, capacities, orders, and disruption events in the demo are synthetic. Anchor's stress report covers only the explicit scenarios it tests; it is not a guarantee against every disruption.
+
+**The decision Anchor is built to change:** two backup suppliers can have different names and still depend on the same failed factory. Anchor follows those paths, removes compromised capacity from the feasible plan, then shows which allocation survives the modeled cases and what it costs.
 
 ## Install with your AI coding agent
 
@@ -45,13 +47,32 @@ Use Anchor to investigate the Silicon Cascade scenario. Show the shared upstream
 
 To restore the deterministic baseline, run `uv run anchor reset`. The demo uses a 1,000-unit order, 350 units of synthetic inventory, an initially independent 650-unit source, and a second independent source with at least 200 units. Optimizer outputs are computed from graph state and constraints, not supplier-name rules.
 
+### What the checked-in scenario computes
+
+These are deterministic outputs for the synthetic Silicon Cascade fixture, not measured real-world savings. Costs are synthetic USD; the comparison method and assumptions are in [docs/benchmark-results.md](docs/benchmark-results.md).
+
+| Case | Allocation or proposal | Unmet units | Incremental cost |
+|---|---|---:|---:|
+| No supplier intervention | 350 inventory | 650 | USD 0 |
+| Cheapest, dependency-blind proposal | 350 inventory + 600 backup B + 50 backup C; the graph marks both backups exposed to the failed foundry | 650 after eligibility is enforced | USD 2,220 nominal |
+| Graph-optimized recovery | 350 inventory + 650 independent D | 0 | USD 5,850 |
+| D capacity reduced to 450 | 350 inventory + 450 D + 200 independent E | 0 | USD 6,550 |
+
+The interesting result is the trade-off: the dependency-blind proposal looks cheaper on paper, but cannot satisfy the order once the shared upstream failure is followed. The graph-aware plan pays more for supply that is actually eligible.
+
 ## What makes Anchor different
 
-- FalkorDB paths expose alternatives that share an affected upstream dependency.
-- OR-Tools handles integer allocations, source capacities, contracts, and lead times.
-- A bounded counterexample loop tests the recovery against single failures and graph-linked correlated pairs, then re-optimizes.
-- Actions mutate a persistent local mock ERP; receipts are checked by reading state back. One injected reservation rejection is recorded and triggers at most one new solve and execution attempt.
+- **The graph changes the allocation.** FalkorDB paths expose alternatives that share the failed upstream facility; graph eligibility affects which capacity the optimizer may use. A dependency-edge change is also covered by an integration test that verifies the selected strategy changes.
+- **The solver allocates, it does not recommend.** OR-Tools handles integer quantities, source capacities, contracts, due dates, and unmet demand. The displayed costs use synthetic USD minor units.
+- **The recovery is challenged before execution.** A bounded counterexample loop evaluates single failures and graph-linked correlated pairs. The checked-in Silicon Cascade benchmark passes its nine declared graph-derived scenarios; that result covers only those scenarios and bounds.
+- **A success response is not proof of execution.** Actions mutate the persistent local mock ERP. Anchor records receipts and verifies postconditions by reading the ERP state back. A rejected reservation is recorded and triggers at most one replan attempt.
 - Incidents, plans, graph versions, evidence, and verified actions persist in FalkorDB across sessions.
+
+The separate optimizer test `test_graph_derived_counterexample_changes_priority_allocation` shows a path-bearing failure scenario changing which order receives a scarce cheap source. The flagship single-order run demonstrates the shared-dependency rejection, the capacity-driven replan, and its declared stress-set result; it does not claim that the run found a counterexample that changed that single-order allocation.
+
+## Why FalkorDB is load-bearing
+
+The graph is used to discover paths from the failed foundry to the apparent backups, determine eligible supply, generate follow-on scenarios, and persist evidence-linked decisions. Removing FalkorDB causes graph-dependent operations to fail clearly. The tests also change a predefined dependency edge and check that recovery changes with it. This is the core product test: if the relationship changes but the decision does not, Anchor has not used the graph to decide.
 
 ## Architecture and technical details
 

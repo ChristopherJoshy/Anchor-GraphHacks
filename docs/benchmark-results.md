@@ -40,7 +40,7 @@ Prices are synthetic USD minor units (100 minor units = USD 1.00). “Naive chea
 
 The base plan passed its 9 graph-derived, deterministic stress scenarios. This means only that the enumerated test set had no unmet demand in that run. It is not a probability estimate or a guarantee against unmodeled disruptions. Both feasible capacity settings recovered fully (2/2); the deliberately infeasible setting was reported with its remaining 650 units rather than counted as a successful recovery.
 
-The full automated suite passed 25 tests in this environment; Ruff passed, and the frontend production build completed. The suite emitted three dependency deprecation warnings, and Vite emitted a large optional globe-chunk warning.
+At the time of this benchmark capture, the suite had 25 tests. A later run after adding the focused counterexample-allocation test passed 26 tests; Ruff and the frontend production build also passed. The backend suite emitted three dependency deprecation warnings, and Vite emitted a large optional globe-chunk warning.
 
 ## Reproduction
 

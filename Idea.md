@@ -1,32 +1,52 @@
 # Anchor
 
-**Graph-backed recovery under attack.** Anchor helps answer: *Will this recovery still work if another connected part of the network fails?*
+**Find the shared failure. Recover. Test what breaks next.**
 
 ## Product thesis
 
-Anchor investigates a disruption in a synthetic manufacturing supply network, traces affected orders and shared upstream dependencies through FalkorDB, computes feasible recovery allocations, then stress-tests a candidate against a bounded set of graph-derived follow-on failures. If it finds a counterexample, it reports the failure path and revises the allocation. It can execute approved actions only inside a persistent local mock ERP, read back the resulting state, and write evidence-linked history to FalkorDB.
+An operational recovery can become the next failure if its replacement sources share the same upstream dependency. Anchor uses FalkorDB to find those common paths, computes a feasible allocation under capacity, contract, compatibility, and delivery constraints, and challenges the candidate against a bounded set of additional graph-derived failures. It executes only in a persistent synthetic ERP and calls the result verified only after reading the changed state back.
 
-The core loop is:
+**The graph must change the decision, not just decorate its explanation.** A supplier that appears available in an isolated record can be excluded when its graph path reaches the failed factory. A predefined dependency edge or a capacity edit must be able to change the plan.
 
-**DETECT → TRACE → SIMULATE → ALLOCATE → STRESS-TEST → REPLAN → EXECUTE IN SIMULATION → VERIFY → EXPLAIN**
+## What makes the idea distinctive
 
-## The differentiating demo
+Anchor does not claim that supply-chain risk analysis, route planning, a globe, or “detect, fix, verify” is novel. Public winners already cover those broad ideas. The sharper product is **a graph-witnessed recovery that is tested against explicit follow-on failures before a simulated action is accepted**:
 
-In **The Silicon Cascade**, a fictional 1,000-unit microcontroller order is exposed to a failed upstream factory. Two apparently separate backup suppliers share that dependency. Inventory and independent suppliers offer alternatives. Anchor must use the graph to uncover the shared exposure and use deterministic constrained optimization to allocate stock and capacity.
+1. **Trace the common cause.** FalkorDB returns paths from an incident through shared upstream dependencies to apparently independent alternatives.
+2. **Allocate scarce resources.** OR-Tools computes integer source-to-order quantities while respecting hard qualification rules and reporting unmet demand.
+3. **Challenge the recovery.** A deterministic, bounded scenario set tests additional single and correlated failures. A counterexample includes its graph path; the optimizer can account for the supplied counterexample, or the system reports the remaining weakness/infeasibility.
+4. **Act inside the safe boundary.** The policy gate allows only synthetic simulation actions. The mock ERP mutates persistent state and returns receipts.
+5. **Verify independently.** Anchor reads the ERP state back, checks postconditions, and stores the incident, plan, evidence, action, and outcome in FalkorDB for later sessions.
 
-Then the operator reduces the primary independent source's capacity. The feasible allocation should change because the actual graph-backed constraints changed. Anchor evaluates the proposed recovery against explicitly modeled single failures and correlated pairs linked by shared dependencies. A discovered counterexample becomes visible evidence and may change the plan. The operator can inject an execution fault; Anchor must detect it from read-back, bound its retry/replan behavior, and report any unresolved shortage honestly.
+The stress result is a report about the declared scenarios and search bound. It is not a formal proof, probability estimate, or guarantee against unmodeled failures.
 
-## What Anchor is and is not
+## The Silicon Cascade demo
 
-- **Is:** an inspectable decision-and-action prototype for a synthetic supply network, centered on graph relationships and testable constrained decisions.
-- **Is:** an evidence report about the particular modeled failures evaluated.
-- **Is not:** a formal proof, a guarantee against every future event, live global supply-chain intelligence, or a production procurement agent.
-- **Is not:** merely a globe, risk dashboard, general chatbot, or LLM-generated supplier recommender.
+A fictional order needs 1,000 microcontrollers. It has 350 units of synthetic inventory. Two cheap backup suppliers share a failed foundry, while independent supplier D can provide 650 units. The graph should make the cheap backups ineligible for affected capacity, so the optimizer chooses the inventory and D. If D falls to 450 units, supplier E must supply the additional 200 units. The same code handles both conditions; names do not select the answer.
 
-## Audience and value
+The benchmark reports these fixture results: the dependency-blind cheapest proposal leaves 650 units unmet after graph eligibility is applied; graph-aware recovery supplies all 1,000 at USD 5,850; reducing D's capacity to 450 produces a 350 + 450 + 200 allocation at USD 6,550. Costs and all commercial facts are synthetic. The base plan passes its nine declared graph-derived stress scenarios in the checked-in benchmark; that is only a result for that finite test set.
 
-The demo is for hackathon judges and engineers evaluating graph-backed agent behavior. The practical user is an operations planner who needs to understand why apparent alternatives are correlated, what a feasible recovery costs, which tested failure can break it, and whether a permitted change actually took effect.
+The demo's falsifiable proof points are:
 
-## Success evidence
+- The failed facility and two backups appear on returned multi-hop graph paths.
+- Changing a predefined dependency edge changes the selected strategy (integration-tested).
+- A path-bearing counterexample changes scarce-source allocation between two priority orders (unit-tested; separate from the single-order flagship run).
+- Reducing D's capacity changes the computed feasible allocation and cost.
+- A rejected reservation is caught by read-back, then handled with bounded replanning.
+- With FalkorDB unavailable, graph-dependent tools fail rather than inventing a recovery.
 
-The idea is substantiated only if a reproducible run shows: a real multi-hop FalkorDB path changing an eligibility or stress-test result; solver-derived feasible allocations; a changed decision after a material capacity edit; bounded failure testing with a counterexample or explicit pass over the declared test set; persistent mock ERP mutation plus independent read-back; and persisted evidence that can be retrieved after restart. No metric or success is presumed before it is measured.
+## Audience and user value
+
+For an operations planner, Anchor answers: **Which of my apparent backups are exposed to the same failure? What allocation can still satisfy the critical orders? What modeled failure could break that recovery? Did the authorized change actually take effect?** The demo is an inspectable decision-and-action prototype, not an operational procurement service.
+
+## Scope and limits
+
+- The global-looking network is synthetic, with real city reference points clearly separated from synthetic firms, facilities, routes, contracts, capacities, and orders.
+- Execution is confined to a local persistent mock ERP. There are no live supplier, payment, logistics, or production writes.
+- Scenario generation is bounded and deterministic. “Passed” means only that the named cases passed within the stated limits.
+- If evidence is missing, capacity is insufficient, the plan is stale, or verification fails, Anchor reports the failure and unresolved demand.
+- The agent is a domain-specific Track 01 MCP tool set. The host coding agent provides natural-language reasoning; deterministic code owns graph access, feasibility, policy, and execution.
+
+## Research basis
+
+The product decision is informed by comparable winners: RiskWise and CHRONOS show that broad supply-chain risk and logistics planning are already proven hackathon themes; Atrium demonstrates that a graph relationship can select a different intervention; Project Blackbox and Hindsight emphasize evidence gates, context ablation, and independent write verification. Anchor applies those lessons to shared supplier dependencies and constrained recovery. Sources, dates, competitor limits, and the rejected alternatives are recorded in [`docs/research.md`](docs/research.md) and [`docs/product-decision.md`](docs/product-decision.md).
