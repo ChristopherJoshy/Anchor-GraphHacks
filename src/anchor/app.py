@@ -66,7 +66,7 @@ def anchor_trigger_incident(
     severity: int = Field(default=5, ge=1, le=5),
     mode: str = "SIMULATION",
 ) -> dict:
-    """Create a synthetic incident in the selected scenario."""
+    """Create a synthetic incident; the only accepted mode is SIMULATION."""
     return service.trigger(scenario_id, entity_id, incident_type, severity, mode)
 
 

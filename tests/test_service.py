@@ -1,3 +1,5 @@
+import pytest
+
 from anchor.erp import ERP
 from anchor.models import Allocation, RecoveryPlan
 from anchor.service import AnchorService
@@ -24,6 +26,22 @@ class GraphFixture:
 
     def record_run_outcome(self, plan_id, incident_id, status):
         self.outcomes.append((plan_id, incident_id, status))
+
+    def trigger_incident(self, scenario_id, entity_id, incident_type, severity):
+        return {
+            "scenario_id": scenario_id,
+            "entity_id": entity_id,
+            "incident_type": incident_type,
+            "severity": severity,
+        }
+
+
+def test_trigger_allows_case_insensitive_simulation_only():
+    service = AnchorService(graph=GraphFixture(), erp=ERP(":memory:"))
+    assert service.trigger("scenario", "supplier", mode="simulation")["entity_id"] == "supplier"
+
+    with pytest.raises(ValueError, match="simulation mode only"):
+        service.trigger("scenario", "supplier", mode="PRODUCTION")
 
 
 def test_execute_replaces_prior_plan_and_verifies_run_readback(tmp_path):
@@ -82,7 +100,7 @@ def test_execute_replaces_prior_plan_and_verifies_run_readback(tmp_path):
         },
     )
     service._plans[first.id] = first
-    first_run = service.execute(first.id)
+    first_run = service.execute(first.id, mode="simulation")
     assert first_run["status"] == "RECOVERED"
     assert service.verify(first_run["run_id"])["verified"]
 

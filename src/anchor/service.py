@@ -87,7 +87,7 @@ class AnchorService:
         severity: int = 5,
         mode: str = "SIMULATION",
     ) -> dict:
-        if mode != "SIMULATION":
+        if not isinstance(mode, str) or mode.upper() != "SIMULATION":
             raise ValueError("This build supports simulation mode only")
         return self.graph.trigger_incident(scenario_id, entity_id, incident_type, severity)
 
@@ -151,7 +151,7 @@ class AnchorService:
     def execute(
         self, plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
     ) -> dict:
-        if mode != "SIMULATION":
+        if not isinstance(mode, str) or mode.upper() != "SIMULATION":
             raise ValueError("Only simulation execution is enabled")
         plan = self._plans.get(plan_id)
         if plan is None:
