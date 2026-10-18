@@ -82,6 +82,36 @@ def test_bounded_stress_reports_risk_and_capacity_change_changes_plan():
     }
 
 
+def test_graph_derived_counterexample_changes_priority_allocation():
+    sources = [source("a-cheap", 1, 1), source("b-dear", 2, 100)]
+    orders = [
+        OrderDemand(id="A-high", product_id="mcu", quantity=1, priority=5, due_days=5),
+        OrderDemand(id="B-low", product_id="mcu", quantity=1, priority=1, due_days=5),
+    ]
+    nominal = optimize_recovery("incident", 1, sources, orders, max_iterations=0)
+    scenario = FailureScenario(
+        id="z-shared-fab",
+        failed_entity_ids=["b-dear"],
+        paths=[["b-dear", "shared-fab"]],
+        label="Graph path: b-dear depends on shared-fab",
+    )
+    stress_tested = optimize_recovery(
+        "incident", 1, sources, orders, correlated_scenarios=[scenario], max_iterations=1
+    )
+
+    assert {(a.source_id, a.order_id) for a in nominal.allocations} == {
+        ("a-cheap", "B-low"),
+        ("b-dear", "A-high"),
+    }
+    assert {(a.source_id, a.order_id) for a in stress_tested.allocations} == {
+        ("a-cheap", "A-high"),
+        ("b-dear", "B-low"),
+    }
+    assert stress_tested.stress_iterations == 1
+    assert stress_tested.worst_counterexample == scenario
+    assert stress_tested.objective.worst_single_failure_shortfall == 1
+
+
 def test_standby_capacity_can_keep_recovery_feasible_under_single_failures():
     sources = [
         source("inventory", 350, 0, kind="inventory"),
