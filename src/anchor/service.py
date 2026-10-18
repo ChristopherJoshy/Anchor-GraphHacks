@@ -232,5 +232,5 @@ class AnchorService:
     def network(self) -> dict:
         return self.graph.network_summary()
 
-    def history(self) -> list[dict]:
-        return self.graph.history(100)
+    def history(self, limit: int = 20) -> list[dict]:
+        return self.graph.history(limit)

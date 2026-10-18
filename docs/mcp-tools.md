@@ -5,6 +5,7 @@ Transport: Streamable HTTP at `http://127.0.0.1:8765/mcp`; loopback binding by d
 | Tool | Inputs | Effect / output |
 |---|---|---|
 | `anchor_health` | none | Graph connection, mode, dataset, mock ERP readiness. |
+| `anchor_history` | limit 1–100 (default 20) | Recent persisted incidents, plans, actions, and receipts, with a bounded count and summary. |
 | `anchor_network_summary` | none | Bounded graph counts, geography, node/edge records, provenance, recent incidents. |
 | `anchor_trigger_incident` | scenario ID, entity ID, incident type, severity 1–5, mode | Adds synthetic incident and graph evidence link. Only `SIMULATION` is accepted. |
 | `anchor_assess_cascade` | incident ID, depth 1–12 | FalkorDB downstream paths, dependent orders, upstream supplier evidence. |

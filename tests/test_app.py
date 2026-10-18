@@ -1,6 +1,7 @@
 import asyncio
 
 from fastapi.testclient import TestClient
+from fastmcp import Client
 
 from anchor.app import app, mcp, service
 from anchor.graph import GraphUnavailableError
@@ -9,6 +10,7 @@ from anchor.graph import GraphUnavailableError
 def test_mcp_exposes_the_domain_tools_and_http_app():
     tools = asyncio.run(mcp.get_tools())
     assert set(tools) == {
+        "anchor_history",
         "anchor_health",
         "anchor_network_summary",
         "anchor_trigger_incident",
@@ -52,6 +54,7 @@ def test_mcp_streamable_http_initializes_lists_tools_and_rejects_bad_host():
             json={"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
         )
         assert listed.status_code == 200
+        assert '"name":"anchor_history"' in listed.text
         assert '"name":"anchor_health"' in listed.text
         assert '"name":"anchor_reset_demo"' in listed.text
 
@@ -72,3 +75,17 @@ def test_health_reports_graph_dependency_failure(monkeypatch):
     assert response.status_code == 200
     assert response.json()["ready"] is False
     assert response.json()["graph"] == "unavailable"
+
+
+async def test_mcp_history_returns_bounded_persisted_records(monkeypatch):
+    records = [{"kind": "Incident", "id": f"incident-{index}"} for index in range(3)]
+    monkeypatch.setattr(service, "history", lambda limit: records[:limit])
+
+    async with Client(mcp) as client:
+        result = await client.call_tool("anchor_history", {"limit": 2})
+
+    assert result.structured_content == {
+        "summary": "Retrieved 2 graph-backed records.",
+        "count": 2,
+        "items": records[:2],
+    }

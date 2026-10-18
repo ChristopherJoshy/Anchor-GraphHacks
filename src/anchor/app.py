@@ -42,6 +42,17 @@ def anchor_health() -> dict:
 
 
 @mcp.tool
+def anchor_history(limit: int = Field(default=20, ge=1, le=100)) -> dict:
+    """Retrieve recent incidents, recovery plans, actions, and receipts from FalkorDB."""
+    items = service.history(limit)
+    return {
+        "summary": f"Retrieved {len(items)} graph-backed records.",
+        "count": len(items),
+        "items": items,
+    }
+
+
+@mcp.tool
 def anchor_network_summary() -> dict:
     """Summarize the synthetic connected supply network and incidents."""
     return service.network()
