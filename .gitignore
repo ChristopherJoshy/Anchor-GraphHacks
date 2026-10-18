@@ -12,6 +12,8 @@ data/*.sqlite3
 data/*.db
 web/node_modules/
 web/dist/
+web/public/cesium/
+web/.npm-cache/
 *.log
 *.mp4
 *.webm

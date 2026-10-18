@@ -1,2 +1,135 @@
-.globe-loading{height:355px;display:flex;align-items:center;justify-content:center;gap:9px;color:#96aaa7;font:11px var(--mono)}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+:root {
+  --muted: #596761;
+}
+
+.section-label,
+.directory-list-heading,
+.directory-heading p,
+.network-totals span,
+.location-button small,
+.directory-footnote small,
+.record-list small,
+.technical-details summary,
+.page-intro > p,
+.result-section > p,
+.business-metrics span,
+.allocation-table caption,
+.activity-row p,
+.technical-section > p {
+  color: #596761;
+}
+
+.record-facts dt,
+.muted,
+.simulation-note,
+.app-footer {
+  color: #596761;
+}
+
+.location-inspector .muted {
+  color: #596761;
+}
+
+.location-inspector .text-button,
+.location-reference,
+.exposure-message p {
+  color: #596761;
+}
+
+.order-brief > span,
+.order-brief > small,
+.recovery-steps li:not(.current) strong,
+.recovery-steps li.current p {
+  color: #596761;
+}
+
+.street-map .map-heading,
+.street-map .map-bottom,
+.street-map .map-guidance,
+.street-map .imagery-note {
+  color: #243438;
+  background: rgb(250 249 245 / 94%);
+  border: 1px solid rgb(39 55 56 / 18%);
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgb(24 37 39 / 12%);
+  backdrop-filter: blur(5px);
+}
+
+.street-map .map-heading {
+  max-width: min(390px, calc(100% - 40px));
+  padding: 12px 15px;
+}
+
+.street-map .map-heading h1,
+.street-map .map-overline,
+.street-map .map-heading p {
+  color: #243438;
+}
+
+.street-map .map-heading h1 {
+  text-shadow: none;
+}
+
+.street-map .map-heading p {
+  margin-bottom: 0;
+}
+
+.street-map .map-bottom {
+  padding: 9px 12px;
+}
+
+.map-legend {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.dependency-key,
+.transport-key {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+  flex: 0 0 12px;
+}
+
+.dependency-key {
+  background: #708ba3;
+}
+
+.transport-key {
+  border-top: 2px dashed #687b84;
+}
+
+.street-map .map-legend,
+.street-map .map-altitude {
+  color: #243438;
+}
+
+.street-map .map-guidance {
+  padding: 7px 10px;
+}
+
+.street-map .imagery-note {
+  padding: 9px 12px;
+}
+
+.street-map .cesium-viewer-bottom {
+  padding: 3px 5px;
+  color: #243438;
+  background: rgb(250 249 245 / 90%);
+  border-radius: 3px;
+}
+
+.street-map .cesium-viewer-bottom a {
+  color: #24576a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

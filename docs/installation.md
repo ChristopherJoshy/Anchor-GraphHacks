@@ -5,7 +5,7 @@
 - Windows 11 with WSL2, macOS, or Linux
 - Python 3.12 or 3.13 and `uv`
 - Docker Desktop/Engine with Compose v2
-- Optional dashboard: Node.js/npm
+- Optional web explorer: Node.js 22.18 or newer and npm
 
 The backend and graph bind to loopback. Verified locally on 18 Oct 2026: Windows 11 build 26200, Python 3.13.14, Docker Desktop 4.95.0 / Engine 29.8.2, and the `falkordb/falkordb:v4.20.4` image. `docker compose ps` showed FalkorDB healthy, `uv run anchor doctor` reported graph and mock ERP ready, and Codex CLI tool calls reached the running MCP endpoint. Claude Code and OpenCode were not exercised.
 
@@ -25,6 +25,17 @@ uv run pytest
 ```
 
 MCP: `http://127.0.0.1:8765/mcp`. REST health: `http://127.0.0.1:8765/api/health`. The current Python entry point is `uv run anchor serve`; `anchor reset` replaces the named synthetic graph and SQLite demo state.
+
+### Optional web explorer
+
+Keep the backend running, then use a second terminal:
+
+```powershell
+npm --prefix web ci
+npm --prefix web run dev
+```
+
+Open `http://127.0.0.1:5173`. Build for local preview with `npm --prefix web run build` and `npm --prefix web run preview`. The map uses remote NASA GIBS and OpenStreetMap tiles in addition to bundled Natural Earth overview imagery. See [web-experience.md](web-experience.md) for attribution, privacy, and geographic limitations.
 
 ## Codex CLI
 

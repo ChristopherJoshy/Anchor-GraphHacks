@@ -18,7 +18,7 @@ Read AGENTS.md, Idea.md, rules.txt, and the installation steps in README.md. Che
 
 ## Manual setup
 
-Requirements: Python 3.12 or 3.13, `uv`, Docker with Compose. Node.js/npm are needed only for the optional dashboard.
+Requirements: Python 3.12 or 3.13, `uv`, Docker with Compose. Node.js 22.18 or newer and npm are needed only for the optional web explorer.
 
 ```powershell
 Copy-Item .env.example .env
@@ -28,7 +28,18 @@ uv run anchor reset
 uv run anchor serve
 ```
 
-Anchor binds to loopback by default. MCP is served at `http://127.0.0.1:8765/mcp`; the REST API is served by the same local service. Use `uv run anchor doctor` to inspect prerequisites and readiness. The optional dashboard is not required for the Codex demonstration.
+Anchor binds to loopback by default. MCP is served at `http://127.0.0.1:8765/mcp`; the REST API is served by the same local service. Use `uv run anchor doctor` to inspect prerequisites and readiness. The optional web explorer is not required for the Codex demonstration.
+
+### Optional local web explorer
+
+With the backend running in one terminal, start the browser interface in another:
+
+```powershell
+npm --prefix web ci
+npm --prefix web run dev
+```
+
+Open `http://127.0.0.1:5173`. Explore the global network and its graph-derived relationships, then use **Recover orders** to follow the guided synthetic scenario. The web view reads the same local API and cannot replace FalkorDB. NASA imagery and OpenStreetMap street tiles need an internet connection; a bundled low-detail Earth layer remains available when remote imagery cannot load. Locations are geographic references, not exact facilities. See [docs/web-experience.md](docs/web-experience.md) for the research basis, map semantics, privacy, and verified limits.
 
 ## Codex CLI
 
