@@ -85,11 +85,22 @@ def anchor_find_recovery_plans(
 
 
 @mcp.tool
+def anchor_inject_simulated_failure(source_id: str) -> dict:
+    """Reject one future supplier reservation to demonstrate recovery in simulation."""
+    service.erp.inject_reservation_failure_once(source_id)
+    return {
+        "source_id": source_id,
+        "failure": "RESERVATION_REJECTED_ONCE",
+        "mode": "SIMULATION",
+    }
+
+
+@mcp.tool
 def anchor_execute_recovery(
     plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
 ) -> dict:
-    """Execute an authorized plan in the local simulation and read back its results."""
-    return service.execute(plan_id, mode, idempotency_key)
+    """Execute, verify, and perform at most one solver replan after an action failure."""
+    return service.execute_with_replan(plan_id, mode, idempotency_key)
 
 
 @mcp.tool

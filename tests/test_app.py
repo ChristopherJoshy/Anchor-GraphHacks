@@ -16,6 +16,7 @@ def test_mcp_exposes_the_domain_tools_and_http_app():
         "anchor_trigger_incident",
         "anchor_assess_cascade",
         "anchor_find_recovery_plans",
+        "anchor_inject_simulated_failure",
         "anchor_execute_recovery",
         "anchor_verify_recovery",
         "anchor_explain_decision",
@@ -57,6 +58,7 @@ def test_mcp_streamable_http_initializes_lists_tools_and_rejects_bad_host():
         assert '"name":"anchor_history"' in listed.text
         assert '"name":"anchor_health"' in listed.text
         assert '"name":"anchor_reset_demo"' in listed.text
+        assert '"name":"anchor_inject_simulated_failure"' in listed.text
 
         rejected = client.post(
             "/mcp",

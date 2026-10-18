@@ -11,7 +11,7 @@ Anchor is a graph-native supply-chain recovery agent. It traces hidden shared de
 Paste this into Codex CLI from the repository directory:
 
 ```text
-Read AGENTS.md, Idea.md, rules.txt, and the installation steps in README.md. Check Docker and Python 3.12 first. Start the local FalkorDB service, install Anchor, seed the synthetic demo, and register the local MCP server using the documented Codex command without replacing unrelated configuration. Verify health and tool discovery. Then run the Silicon Cascade demo, show graph paths and the actual verified mock ERP state, reduce the independent source capacity, and run the recalculation. Explain which outputs are synthetic and which checks passed. Stop and report if a prerequisite is missing; do not silently substitute an in-memory graph.
+Read AGENTS.md, Idea.md, rules.txt, and the installation steps in README.md. Check Docker and Python 3.12 or 3.13 first. Start FalkorDB, install Anchor, seed the synthetic demo, and register the local MCP server using the documented Codex command without replacing unrelated configuration. Verify health and tool discovery. Run the Silicon Cascade demo, inject one synthetic reservation rejection, show the rejected receipt and bounded replan, verify the mock ERP read-back, then reduce independent supplier D's capacity and show the recalculated allocation. Explain which outputs are synthetic and which checks passed. Stop and report if a prerequisite is missing; do not silently substitute an in-memory graph.
 ```
 
 ## Manual setup
@@ -40,7 +40,7 @@ Restart Codex CLI after registration if the server's tools do not appear. See `d
 ## Demo: The Silicon Cascade
 
 ```text
-Use Anchor to investigate the active Silicon Cascade incident. Show the shared upstream paths for the two cheap backups, compute and stress-test a recovery, execute it in SIMULATION mode, and verify the order state by reading it back. Then reduce the independent supplier's capacity to 450 units, replan, and show the newly required source.
+Use Anchor to investigate the Silicon Cascade scenario. Show the shared upstream paths for the two cheap backups, compute and stress-test a recovery, inject one simulated supplier reservation failure, and execute it in SIMULATION mode. Show the rejected receipt and one bounded replan, then verify the order state by reading it back. Reduce independent supplier D's capacity to 450 units, replan, and show the newly required source.
 ```
 
 To restore the deterministic baseline, run `uv run anchor reset`. The demo uses a 1,000-unit order, 350 units of synthetic inventory, an initially independent 650-unit source, and a second independent source with at least 200 units. Optimizer outputs are computed from graph state and constraints, not supplier-name rules.
@@ -50,7 +50,7 @@ To restore the deterministic baseline, run `uv run anchor reset`. The demo uses 
 - FalkorDB paths expose alternatives that share an affected upstream dependency.
 - OR-Tools handles integer allocations, source capacities, contracts, and lead times.
 - A bounded counterexample loop tests the recovery against single failures and graph-linked correlated pairs, then re-optimizes.
-- Actions mutate a persistent local mock ERP; receipts are checked by reading state back.
+- Actions mutate a persistent local mock ERP; receipts are checked by reading state back. One injected reservation rejection is recorded and triggers at most one new solve and execution attempt.
 - Incidents, plans, graph versions, evidence, and verified actions persist in FalkorDB across sessions.
 
 ## Architecture and technical details

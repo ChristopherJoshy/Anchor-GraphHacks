@@ -28,7 +28,7 @@ In the demo, the graph links two cheaper backup suppliers to the same affected u
 
 ## How the action is verified
 
-The MCP action invokes a simulation-only operation. The local mock ERP actually changes its persistent state and returns a receipt. Anchor independently reads back the allocations and compares them with the plan. An exception during execution is reported as failed; full retry/backoff, partial workflow compensation, and automatic replan after an execution-time constraint change are not implemented yet.
+The MCP action invokes a simulation-only operation. The local mock ERP actually changes its persistent state and returns a receipt. Anchor independently reads back the allocations and compares them with the plan and order completion. A test-only injector can reject one supplier reservation. Anchor records the rejection, returns a failed first attempt and its partial read-back, then solves and executes at most one replacement plan. General timeout/backoff handling, partial workflow compensation, and automatic synchronization after an external production constraint change are out of scope.
 
 ## MCP and session history
 

@@ -35,8 +35,20 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
     restarted_service = AnchorService(
         graph=GraphStore(graph_name="anchor_integration_test"), erp=ERP(erp_path)
     )
-    first_run = restarted_service.execute(first_plan.id, idempotency_key="integration-run-1")
+    service.erp.inject_reservation_failure_once("SUP-INDEPENDENT-D")
+    recovery = restarted_service.execute_with_replan(
+        first_plan.id, idempotency_key="integration-run-1"
+    )
+    assert recovery["status"] == "RECOVERED"
+    assert recovery["replans"] == 1
+    assert len(recovery["attempts"]) == 2
+    failed_attempt, first_run = recovery["attempts"]
+    assert failed_attempt["status"] == "EXECUTION_FAILED"
+    assert failed_attempt["verified"] is False
+    assert failed_attempt["remaining_shortfall"] == 650
     assert first_run["verified"] is True
+    assert first_run["status"] == "RECOVERED"
+    assert restarted_service.verify(failed_attempt["run_id"])["verified"] is False
     assert restarted_service.verify(first_run["run_id"])["verified"] is True
 
     graph.set_capacity("SUP-INDEPENDENT-D", 450)
@@ -49,7 +61,9 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
     }
     assert second_plan.objective.worst_single_failure_shortfall == 0
     assert second_plan.stress_passed
-    second_run = service.execute(second_plan.id, idempotency_key="integration-run-2")
+    second_result = service.execute_with_replan(second_plan.id, idempotency_key="integration-run-2")
+    second_run = second_result["attempts"][0]
+    assert second_result["replans"] == 0
     assert second_run["status"] == "RECOVERED"
     assert second_run["remaining_shortfall"] == 0
     assert service.verify(second_run["run_id"])["verified"] is True

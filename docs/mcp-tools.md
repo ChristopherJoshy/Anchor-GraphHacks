@@ -10,7 +10,8 @@ Transport: Streamable HTTP at `http://127.0.0.1:8765/mcp`; loopback binding by d
 | `anchor_trigger_incident` | scenario ID, entity ID, incident type, severity 1–5, mode | Adds synthetic incident and graph evidence link. Only `SIMULATION` is accepted. |
 | `anchor_assess_cascade` | incident ID, depth 1–12 | FalkorDB downstream paths, dependent orders, upstream supplier evidence. |
 | `anchor_find_recovery_plans` | incident ID, iteration bound 0–16 | CP-SAT plan, allocations, objective values, tested scenarios, residual demand. |
-| `anchor_execute_recovery` | plan ID, mode, optional idempotency key | Applies local simulated allocations, stores receipts, validates read-back. Rejects stale graph versions. |
+| `anchor_inject_simulated_failure` | supplier ID | Rejects exactly one future reservation for that synthetic supplier; simulation fault-injection only. |
+| `anchor_execute_recovery` | plan ID, mode, optional idempotency key | Applies simulated allocations and reads state back. After an action failure, returns the rejected receipt and performs at most one new graph-backed solve/execute attempt. Rejects stale graph versions. |
 | `anchor_verify_recovery` | run ID | Reads the current mock ERP state. (Run-specific historical verification is a known limitation.) |
 | `anchor_explain_decision` | plan ID | Plan objective and current graph cascade evidence. |
 | `anchor_modify_simulation` | entity ID, nonnegative capacity, kind | Changes supplier capacity only; unsupported kinds fail. |

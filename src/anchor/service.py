@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 from uuid import uuid4
 
 from anchor.config import settings
@@ -144,6 +145,7 @@ class AnchorService:
             if max_iterations is not None
             else settings.max_stress_iterations,
         )
+        plan.id = f"plan:{incident_id}:{plan.graph_version}:{uuid4().hex[:8].upper()}"
         self.graph.persist_plan(plan)
         self._plans[plan.id] = plan
         return plan
@@ -164,6 +166,7 @@ class AnchorService:
             raise ValueError("STALE_PLAN: graph changed after planning; replan before execution")
         run_id = f"RUN-{uuid4().hex[:12].upper()}"
         receipts = []
+        current_action = None
         expected = {(a.source_id, a.order_id): a for a in plan.allocations}
         # A changed plan replaces its prior reservations in the synthetic ERP.
         try:
@@ -176,6 +179,7 @@ class AnchorService:
                     receipts.append(released.model_dump(mode="json"))
             for index, allocation in enumerate(plan.allocations):
                 key = f"{idempotency_key}:{index}" if idempotency_key else f"{run_id}:{index}"
+                current_action = (index, allocation, key)
                 receipt = self.erp.apply_allocation(allocation, key)
                 receipt_record = receipt.model_dump(mode="json")
                 receipt_record["action_id"] = f"{plan.id}-ACTION-{index + 1:03d}"
@@ -189,7 +193,7 @@ class AnchorService:
                     },
                 )
             verified = self.erp.verify(plan.allocations)
-            shortfall = sum(plan.unmet_by_order.values())
+            shortfall = self._remaining_shortfall(plan)
             status = "RECOVERED" if verified and not shortfall else "PARTIALLY_RECOVERED"
             self.graph.record_run_outcome(plan.id, plan.incident_id, status)
             state = self.erp.current_state()
@@ -206,19 +210,84 @@ class AnchorService:
                 "erp_orders": state["orders"],
                 "graph_version": self.graph.version(),
             }
-        except Exception:
+        except (RuntimeError, ValueError, sqlite3.Error) as exc:
+            if current_action is not None:
+                index, allocation, key = current_action
+                failed_receipt = {
+                    "id": f"{run_id}-ACTION-{index + 1:03d}",
+                    "action_id": f"{plan.id}-ACTION-{index + 1:03d}",
+                    "idempotency_key": key,
+                    "status": "REJECTED",
+                    "source_id": allocation.source_id,
+                    "order_id": allocation.order_id,
+                    "quantity": allocation.quantity,
+                    "detail": f"{type(exc).__name__}: {exc}",
+                }
+                receipts.append(failed_receipt)
+                self.graph.persist_receipt(run_id, failed_receipt)
             self.graph.record_run_outcome(plan.id, plan.incident_id, "EXECUTION_FAILED")
-            raise
+            state = self.erp.current_state()
+            return {
+                "run_id": run_id,
+                "incident_id": plan.incident_id,
+                "status": "EXECUTION_FAILED",
+                "verified": False,
+                "receipts": receipts,
+                "verified_allocations": [
+                    a.model_dump(mode="json") for a in self.erp.read_allocations()
+                ],
+                "remaining_shortfall": self._remaining_shortfall(plan),
+                "erp_orders": state["orders"],
+                "graph_version": self.graph.version(),
+                "error": {"code": type(exc).__name__, "message": str(exc)},
+                "replan_required": True,
+            }
+
+    def _remaining_shortfall(self, plan: RecoveryPlan) -> int:
+        state = self.erp.current_state()
+        quantities = {order["id"]: order["quantity"] for order in state["orders"]}
+        allocated = {order_id: 0 for order_id in plan.unmet_by_order}
+        for allocation in self.erp.read_allocations():
+            if allocation.order_id in allocated:
+                allocated[allocation.order_id] += allocation.quantity
+        return sum(
+            max(0, quantities[order_id] - allocated.get(order_id, 0))
+            for order_id in plan.unmet_by_order
+        )
+
+    def execute_with_replan(
+        self, plan_id: str, mode: str = "SIMULATION", idempotency_key: str | None = None
+    ) -> dict:
+        """Retry once with a newly solved plan after an execution failure."""
+        first = self.execute(plan_id, mode, idempotency_key)
+        attempts = [{"plan_id": plan_id, **first}]
+        if first["status"] != "EXECUTION_FAILED" or not first["replan_required"]:
+            return {**first, "attempts": attempts, "replans": 0}
+        plan = self.plan(first["incident_id"])
+        retry_key = f"{idempotency_key}:replan-1" if idempotency_key else None
+        retry = self.execute(plan.id, mode, retry_key)
+        attempts.append({"plan_id": plan.id, **retry})
+        return {**retry, "attempts": attempts, "replans": 1}
 
     def verify(self, run_id: str) -> dict:
         receipts = self.graph.run_receipts(run_id)
-        actual = {(a.source_id, a.order_id, a.quantity) for a in self.erp.read_allocations()}
+        order_ids = {str(r.get("order_id")) for r in receipts if r.get("order_id")}
+        actual = {
+            (a.source_id, a.order_id, a.quantity)
+            for a in self.erp.read_allocations()
+            if a.order_id in order_ids
+        }
         expected = {
             (r.get("source_id"), r.get("order_id"), int(r.get("quantity", 0)))
             for r in receipts
             if r.get("status") in {"APPLIED", "DUPLICATE"}
         }
-        verified = bool(expected) and expected.issubset(actual)
+        state = self.erp.current_state()
+        orders = {o["id"]: o for o in state["orders"]}
+        order_complete = bool(order_ids) and all(
+            orders.get(order_id, {}).get("status") == "ALLOCATED" for order_id in order_ids
+        )
+        verified = bool(expected) and expected == actual and order_complete
         return {
             "run_id": run_id,
             "verified": verified,
@@ -226,7 +295,18 @@ class AnchorService:
             "verified_allocations": [
                 a.model_dump(mode="json") for a in self.erp.read_allocations()
             ],
-            "state": self.erp.current_state(),
+            "remaining_shortfall": sum(
+                max(
+                    0,
+                    orders[order_id]["quantity"]
+                    - sum(
+                        a.quantity for a in self.erp.read_allocations() if a.order_id == order_id
+                    ),
+                )
+                for order_id in order_ids
+                if order_id in orders
+            ),
+            "state": state,
         }
 
     def network(self) -> dict:
