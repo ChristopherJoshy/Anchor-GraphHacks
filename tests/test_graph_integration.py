@@ -53,5 +53,13 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
         record.get("run_id") == second_run["run_id"]
         for record in graph.run_receipts(second_run["run_id"])
     )
+    history = graph.history(100)
+    timestamps = [record.get("updated_at") or record.get("created_at") for record in history]
+    assert all(timestamps)
+    assert timestamps == sorted(timestamps, reverse=True)
+    assert any(
+        record["kind"] == "ExecutionReceipt" and record.get("run_id") == second_run["run_id"]
+        for record in history
+    )
 
     graph._graph.delete()

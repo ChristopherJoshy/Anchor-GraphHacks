@@ -304,9 +304,15 @@ class GraphStore:
             raise ValueError("unsupported recovery outcome status")
         self._query(
             "MATCH (p:RecoveryPlan {id: $plan_id})-[:CONTAINS]->(a:Action) "
-            "SET a.status = $status WITH p "
-            "MATCH (i:Incident {id: $incident_id}) SET i.status = $status",
-            {"plan_id": plan_id, "incident_id": incident_id, "status": status},
+            "SET a.status = $status, a.updated_at = $updated_at WITH p "
+            "MATCH (i:Incident {id: $incident_id}) "
+            "SET i.status = $status, i.updated_at = $updated_at",
+            {
+                "plan_id": plan_id,
+                "incident_id": incident_id,
+                "status": status,
+                "updated_at": datetime.now(UTC).isoformat(),
+            },
         )
 
     def run_receipts(self, run_id: str) -> list[dict[str, Any]]:
@@ -574,6 +580,7 @@ class GraphStore:
                 "plan_id": payload["id"],
                 "incident_id": payload["incident_id"],
                 "status": "PLANNED",
+                "created_at": payload["created_at"],
                 "allocation_json": json.dumps(allocation, sort_keys=True),
                 "source_id": allocation.get("source_id"),
                 "order_id": allocation.get("order_id"),
@@ -616,7 +623,7 @@ class GraphStore:
         rows = self._query(
             "MATCH (n) WHERE n:Incident OR n:RecoveryPlan OR n:Action OR n:ExecutionReceipt "
             "RETURN labels(n)[0] AS kind, properties(n) AS props "
-            "ORDER BY n.created_at DESC LIMIT $limit",
+            "ORDER BY coalesce(n.updated_at, n.created_at) DESC LIMIT $limit",
             {"limit": limit},
         )
         return [{"kind": row[0], **self._props(row[1])} for row in rows]
