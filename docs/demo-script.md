@@ -1,4 +1,6 @@
-# Silicon Cascade live demo (3–4 minutes)
+# Silicon Cascade live demo checklist
+
+**Full pitch, time-coded recording flow, exact Codex prompts, and judge Q&A:** [pitch-and-recording-guide.md](pitch-and-recording-guide.md). Aim for a concise recording and check any duration limit on the submission form.
 
 ## Setup before recording
 

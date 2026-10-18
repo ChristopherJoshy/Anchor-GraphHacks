@@ -41,6 +41,8 @@ Restart Codex CLI after registration if the server's tools do not appear. See `d
 
 ## Demo: The Silicon Cascade
 
+**Full pitch, recording runbook, exact Codex prompts, judge Q&A, and PPT recommendation:** [docs/pitch-and-recording-guide.md](docs/pitch-and-recording-guide.md).
+
 ```text
 Use Anchor to investigate the Silicon Cascade scenario. Show the shared upstream paths for the two cheap backups, compute and stress-test a recovery, inject one simulated supplier reservation failure, and execute it in SIMULATION mode. Show the rejected receipt and one bounded replan, then verify the order state by reading it back. Reduce independent supplier D's capacity to 450 units, replan, and show the newly required source.
 ```
