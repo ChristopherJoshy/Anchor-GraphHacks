@@ -139,6 +139,26 @@ def anchor_modify_simulation(
 
 
 @mcp.tool
+def anchor_modify_dependency(
+    supplier_id: str,
+    upstream_supplier_id: str,
+    connected: bool,
+    mode: str = "SIMULATION",
+) -> dict:
+    """Change a dependency between synthetic suppliers and recompute graph version."""
+    if not isinstance(mode, str) or mode.upper() != "SIMULATION":
+        raise ValueError("Only SIMULATION dependency changes are enabled")
+    version = service.graph.set_dependency(supplier_id, upstream_supplier_id, connected)
+    return {
+        "supplier_id": supplier_id,
+        "upstream_supplier_id": upstream_supplier_id,
+        "connected": connected,
+        "graph_version": version,
+        "mode": "SIMULATION",
+    }
+
+
+@mcp.tool
 def anchor_reset_demo() -> dict:
     """Destructively reset only Anchor's named synthetic demo graph and local ERP."""
     return service.reset()

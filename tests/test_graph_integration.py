@@ -81,3 +81,28 @@ def test_falkordb_backed_silicon_recovery_and_replan(tmp_path):
     )
 
     graph._graph.delete()
+
+
+def test_dependency_edge_change_changes_eligible_recovery_plan(tmp_path):
+    graph = GraphStore(graph_name="anchor_edge_test")
+    try:
+        graph.ping()
+    except GraphUnavailableError as exc:
+        pytest.skip(f"FalkorDB integration service unavailable: {exc}")
+
+    service = AnchorService(graph=graph, erp=ERP(tmp_path / "edge-erp.sqlite3"))
+    service.reset()
+    incident = service.trigger(SCENARIO_ID, INCIDENT_ENTITY_ID)
+    before = service.plan(incident["id"])
+    assert "SUP-BACKUP-B" not in {a.source_id for a in before.allocations}
+
+    with pytest.raises(ValueError, match="cycle"):
+        graph.set_dependency(INCIDENT_ENTITY_ID, "SUP-BACKUP-B", True)
+
+    graph_version = graph.set_dependency("SUP-BACKUP-B", INCIDENT_ENTITY_ID, False)
+    after = service.plan(incident["id"])
+    assert after.graph_version == graph_version
+    assert {a.source_id for a in after.allocations} >= {"SUP-BACKUP-B"}
+    assert graph.get_incident(incident["id"])["graph_version"] < graph_version
+
+    graph._graph.delete()

@@ -21,6 +21,7 @@ def test_mcp_exposes_the_domain_tools_and_http_app():
         "anchor_verify_recovery",
         "anchor_explain_decision",
         "anchor_modify_simulation",
+        "anchor_modify_dependency",
         "anchor_reset_demo",
     }
     assert any(getattr(route, "path", "").startswith("/mcp") for route in app.routes)
@@ -60,6 +61,7 @@ def test_mcp_streamable_http_initializes_lists_tools_and_rejects_bad_host():
         assert '"name":"anchor_reset_demo"' in listed.text
         assert '"name":"anchor_inject_simulated_failure"' in listed.text
         assert '"name":"anchor_modify_simulation"' in listed.text
+        assert '"name":"anchor_modify_dependency"' in listed.text
         assert '"capacity"' in listed.text
 
         rejected = client.post(

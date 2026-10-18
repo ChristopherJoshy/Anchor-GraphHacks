@@ -221,6 +221,47 @@ class GraphStore:
         )
         return self._bump_version()
 
+    def set_dependency(self, supplier_id: str, upstream_id: str, connected: bool) -> int:
+        """Change one synthetic supplier edge, rejecting cycles and unknown entities."""
+        if not supplier_id or not upstream_id or supplier_id == upstream_id:
+            raise ValueError("distinct supplier and upstream IDs are required")
+        if not isinstance(connected, bool):
+            raise TypeError("connected must be a boolean")
+        endpoints = self._query(
+            "MATCH (s:Supplier {id: $supplier_id}), (u:Supplier {id: $upstream_id}) "
+            "RETURN s.id, u.id LIMIT 1",
+            {"supplier_id": supplier_id, "upstream_id": upstream_id},
+        )
+        if not endpoints:
+            raise ValueError("both dependency endpoints must be synthetic Supplier nodes")
+        if connected:
+            cycle = self._query(
+                "MATCH p=(u:Supplier {id: $upstream_id})-[:DEPENDS_ON*1..40]->"
+                "(s:Supplier {id: $supplier_id}) RETURN p LIMIT 1",
+                {"supplier_id": supplier_id, "upstream_id": upstream_id},
+            )
+            if cycle:
+                raise ValueError("dependency would create a cycle")
+            self._query(
+                "MATCH (s:Supplier {id: $supplier_id}), (u:Supplier {id: $upstream_id}) "
+                "MERGE (s)-[r:DEPENDS_ON]->(u) SET r.source = 'synthetic-simulation'",
+                {"supplier_id": supplier_id, "upstream_id": upstream_id},
+            )
+        else:
+            edge = self._query(
+                "MATCH (s:Supplier {id: $supplier_id})-[r:DEPENDS_ON]->"
+                "(u:Supplier {id: $upstream_id}) RETURN r LIMIT 1",
+                {"supplier_id": supplier_id, "upstream_id": upstream_id},
+            )
+            if not edge:
+                raise ValueError("dependency edge does not exist")
+            self._query(
+                "MATCH (s:Supplier {id: $supplier_id})-[r:DEPENDS_ON]->"
+                "(u:Supplier {id: $upstream_id}) DELETE r",
+                {"supplier_id": supplier_id, "upstream_id": upstream_id},
+            )
+        return self._bump_version()
+
     def trigger_incident(
         self, scenario_id: str, entity_id: str, incident_type: str, severity: int
     ) -> dict[str, Any]:
