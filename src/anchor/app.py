@@ -2,16 +2,37 @@
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, HTTPException
 from fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecurityMiddleware, TransportSecuritySettings
 from pydantic import BaseModel, Field
+from starlette.middleware import Middleware
+from starlette.requests import Request
 
 from anchor.service import AnchorService
 
 service = AnchorService()
 mcp = FastMCP("Anchor graph-native recovery")
+
+
+class LoopbackMCPGuard:
+    def __init__(self, app):
+        self.app = app
+        self.security = TransportSecurityMiddleware(
+            TransportSecuritySettings(
+                enable_dns_rebinding_protection=True,
+                allowed_hosts=["127.0.0.1:8765", "localhost:8765"],
+                allowed_origins=["http://127.0.0.1:8765", "http://localhost:8765"],
+            )
+        )
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            response = await self.security.validate_request(Request(scope))
+            if response is not None:
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
 
 
 @mcp.tool
@@ -101,12 +122,11 @@ def anchor_reset_demo() -> dict:
     return service.reset()
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    yield
-
-
-app = FastAPI(title="Anchor", version="0.1.0", lifespan=lifespan)
+mcp_app = mcp.http_app(
+    path="/",
+    middleware=[Middleware(LoopbackMCPGuard)],
+)
+app = FastAPI(title="Anchor", version="0.1.0", lifespan=mcp_app.lifespan)
 
 
 class TriggerBody(BaseModel):
@@ -197,4 +217,4 @@ def mcp_health():
     return {"endpoint": "/mcp", "transport": "streamable-http"}
 
 
-app.mount("/mcp", mcp.http_app(path="/"))
+app.mount("/mcp", mcp_app)
