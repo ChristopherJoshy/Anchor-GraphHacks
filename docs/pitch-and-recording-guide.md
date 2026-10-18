@@ -50,25 +50,45 @@
 
 All suppliers, contracts, stock, prices, orders, and incidents in the demonstration are synthetic. Anchor does not contact real procurement, payment, production, or logistics services.
 
-## Recommended format: skip a PowerPoint deck
+## Recommended format: a product-led recording, no PowerPoint
 
-**For the required submission video, make a narrated screen recording of Codex using the working Anchor MCP tools. Do not make a slide-led presentation.** The Graph Hacks rules require a working-project video, a public repository, graph-model/Cypher documentation, and a live deployment or complete local setup. The rules page reviewed does not require a PPT or specify a video duration. Devpost's demo guidance recommends a clear opening, a working product interaction, and a concise close; participant tips favor showing the app in use and warn against spending the video on slides. Judge interviews also describe judges watching a video for context before testing a submission. Links are below.
+Record Anchor working, not a slide presentation. Use the **web interface as the visual guide** for a non-coder, and show **Codex CLI making the real MCP calls** so judges can see the agent act. Switch between the two full-size windows as the story advances; avoid a cramped split-screen. The browser reads the same backend state, so it makes the graph paths and verified outcome easier to follow after Codex changes them.
 
-Aim for **about 3 minutes**; use up to **3:30** only if the real tool calls need the time and the submission form permits it. Keep the investigation, allocation, action, and verification in the video. A short title caption is optional; do not spend time building a separate deck. If a live presentation specifically asks for slides, use at most three: (1) failure and user, (2) graph path → changed allocation, (3) verified result and limits. A deck is not a substitute for the video.
+The current interface has three views. Use them intentionally:
+
+- **Recover orders:** orient the viewer with the 1,000-unit order, what is at risk, the proposed or completed allocation, and whether ERP read-back verified it.
+- **Explore network:** show the Taiwan foundry and the graph paths that expose the two apparent backups. Use the layers control and select a supplier/path when needed; say the business relationships and operational data are synthetic, while the locations are geographic references.
+- **Activity & evidence:** close on the persisted incident, plan, actions, receipts, and evidence history.
+
+The official rules require a working-project video, a public repository, graph-model/Cypher documentation, and either a live deployment or complete local setup instructions. They do **not** require a PowerPoint or specify a video duration. Devpost's recording guidance favors a quick story, a scripted demonstration of the working product, clear audio, and a concise close. Target **about 3 minutes**; allow up to **3:30** if real tool responses take longer and the submission form permits it. A short opening caption is fine; don't build a deck for the video. If a separate live presentation requires slides, use at most three: problem, graph path changing the plan, verified result and limits.
 
 ## Recording runbook
 
 ### Before recording
 
-Run these from the repository root. Open a first terminal for infrastructure and the server; leave the server running.
+Start Docker Desktop and confirm its engine is running. From the repository root, prepare the services. Run `uv run anchor serve` in its own terminal and leave it running; start the web app and a fresh Codex session in separate windows.
 
 ~~~powershell
 docker compose up -d
 uv sync --extra dev
+npm --prefix web ci
 uv run anchor reset
 uv run anchor doctor
+~~~
+
+In a separate terminal:
+
+~~~powershell
 uv run anchor serve
 ~~~
+
+In another terminal:
+
+~~~powershell
+npm --prefix web run dev
+~~~
+
+The web app requires Node.js 22.18 or newer (`node --version`); the currently verified machine has Node 26.7.0. Open `http://127.0.0.1:5173/`, then open Codex from the repository root. Increase the terminal font until tool names and key returned fields are readable. Keep the browser at a size where the three named views and order-status labels are easy to read. If NASA or OpenStreetMap tiles are slow or unavailable, the app still has its bundled overview layer; don't hold the recording hostage to optional basemap detail.
 
 The reset replaces only the named synthetic demo graph and local mock ERP state. It is destructive to the current demo session, so run it before rehearsal or a clean take, not midway through recording.
 
@@ -88,16 +108,19 @@ Start a fresh Codex CLI session from the repository. Confirm **anchor_health** r
 
 ### Record this sequence
 
-Use a real Codex session and real tool responses. The prompts below are the operator's guide; speak naturally, and let Codex call the listed tools. Do not paste fabricated outputs or edit a failure into a success.
+Use one real Codex session and the running web app against the same local services. Let Codex make the changes through MCP; use the browser to make the graph evidence and resulting order state legible. Switch windows only after a tool call completes. Do not paste fabricated output or edit a failed attempt into a success.
 
 | Time | On screen | Say / do |
 |---|---|---|
-| 0:00–0:15 | Codex CLI, Anchor ready | **Say:** “A backup can be a second name for the same failure. Anchor finds that hidden dependency, computes a recovery, and verifies the action.” |
-| 0:15–0:50 | Incident and returned paths | Ask the incident prompt below. Point out the two graph paths ending at **SUP-TAIWAN-FOUNDRY** and the affected order. Say the network is synthetic. |
-| 0:50–1:20 | Plan output | Ask for a plan and the bounded stress result. Show allocations, cost, unmet units, and why the two backup suppliers are not eligible. |
-| 1:20–2:05 | Injected rejection, receipts, verification | Inject one failure for D, execute the plan, and show the rejected attempt, bounded replan, successful receipts, and ERP read-back. |
-| 2:05–2:45 | Capacity-change plan and read-back | Set D's capacity to 450, replan the same incident, then execute and verify. Show the changed allocation and computed cost. |
-| 2:45–3:10 | Evidence/history and closing | Retrieve history and explain the shared path. Close with the FalkorDB role and the simulation/stress-test limits. |
+| 0:00–0:12 | **Recover orders**, clean opening state | **Say:** “Two backups can be the same failure in disguise. Anchor follows the supply graph, changes the recovery plan, and checks whether the simulated operation actually took effect.” Add: “This network is synthetic.” |
+| 0:12–0:40 | Codex CLI | Send the trigger-and-trace prompt, then the solve-and-stress-check prompt. Let Anchor create the incident, assess the cascade, and calculate the plan. Keep MCP tool names/results visible long enough to establish that Codex is acting through Anchor. |
+| 0:40–1:05 | **Explore network** | Point out the multi-hop paths from backup B and C to **SUP-TAIWAN-FOUNDRY**, then the affected order. Say: “The graph exposes that both cheaper backups share this failed upstream source.” |
+| 1:05–1:25 | **Recover orders** | Show the live plan: 350 inventory + 650 D, 1,000 total, zero unmet, synthetic cost USD 5,850, and the bounded stress result. State that this is the fixture's computed output, not a real-world price or guarantee. |
+| 1:25–1:55 | Codex CLI, then **Recover orders** | Inject one simulated reservation rejection and execute. Show the rejected receipt and one bounded replan in Codex; switch to Recover orders to show ERP read-back and the verified state. |
+| 1:55–2:30 | Codex CLI, then **Recover orders** | Reduce D's capacity to 450, replan, execute, and verify. Show the recalculated 350 inventory + 450 D + 200 E allocation and USD 6,550 fixture cost, if the live result matches. The graph-version change makes clear this is a new plan. |
+| 2:30–2:55 | **Activity & evidence**, then finish | Show the persisted incident/action history and one evidence path. Close: “FalkorDB supplies the relationships that change eligibility; the solver allocates; Anchor executes only in simulation and verifies by reading the ERP back.” |
+
+If the live tool calls take the full 3:30, keep the spoken explanation calm and cut pauses between completed actions. Don't speed up the audio or remove a failure/outcome in a way that changes what happened.
 
 ### Copyable Codex prompts
 
@@ -158,14 +181,15 @@ These values are from the checked-in deterministic synthetic benchmark. The cost
 
 ## Recording and delivery checklist
 
-- Use one clean screen capture with Codex tool calls and returned results readable. 1080p is preferable; increase terminal font size before recording.
-- Use a clear microphone and quiet room. Narrate the consequence and result, not every line of JSON. Avoid background music.
-- Close notifications, unrelated windows, and anything that could expose credentials or personal data. Keep only the needed terminals and Codex session visible.
-- Rehearse once, reset the named demo, then record the real sequence. If trimming pauses, preserve the true order and content of tool calls and outcomes.
+- Use OBS if it is already available, or another screen recorder you already know. Capture the desktop at 1920×1080 if available and record your microphone. Keep the browser and Codex full-size in turns; don't shrink both into unreadable panels.
+- Before recording, set browser zoom and terminal text large enough that a judge can read the order, allocations, tool names, receipt status, and verification status in the exported video.
+- Use a clear microphone in a quiet room. Narrate the consequence and result, not every line of JSON. Avoid background music.
+- Close notifications, unrelated windows, and anything that could expose credentials or personal data. Keep only the needed browser, terminals, and Codex session visible.
+- Rehearse the transitions once, reset the named demo, and record the real sequence. Light trimming of pauses is fine; preserve the order and outcomes of actions. If a real action fails differently from the expected fixture, show that result or make a fresh clean run—never edit failure into success.
 - Play the exported video from beginning to end. Check audio, readable output, duration, and that every claim matches the footage and current code.
 - Upload to the platform accepted by the submission form. Set access so judges can open it without signing into your personal account; test the link in a private browser window.
 - If the form accepts screenshots, add one genuine frame showing the shared-dependency evidence and one showing the verified post-action state. Do not create a slide deck in place of these screenshots or the demo.
-- Keep a separate live-demo fallback: **uv run anchor doctor**, Codex MCP health call, and the baseline prompts. If a component fails, say so; never splice a successful run from another state into a failure run.
+- Keep a separate live-demo fallback: **uv run anchor doctor**, the **anchor_health** MCP call, and the baseline prompts. If a component fails, say so; never splice a successful run from another state into a failure run.
 
 ## Likely judge questions
 

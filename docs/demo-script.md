@@ -1,19 +1,19 @@
 # Silicon Cascade live demo checklist
 
-**Full pitch, time-coded recording flow, exact Codex prompts, and judge Q&A:** [pitch-and-recording-guide.md](pitch-and-recording-guide.md). Aim for a concise recording and check any duration limit on the submission form.
+**Full pitch, time-coded browser/CLI recording flow, exact Codex prompts, and judge Q&A:** [pitch-and-recording-guide.md](pitch-and-recording-guide.md). Target about three minutes; check any duration limit on the submission form.
 
 ## Setup before recording
 
-Start Docker Compose, install the project, run `uv run anchor reset`, and start `uv run anchor serve`. Register Anchor in Codex using `codex mcp add anchor --url http://127.0.0.1:8765/mcp`. Run `codex mcp list` and `uv run anchor doctor`. Only record if FalkorDB is connected and the named tools are discoverable. The MCP reset tool deletes only the demo graph/ERP state.
+Start Docker Desktop. From the repository root, run `docker compose up -d`, `uv sync --extra dev`, `npm --prefix web ci`, `uv run anchor reset`, and `uv run anchor doctor`. Confirm Node.js is 22.18 or newer. Start `uv run anchor serve` and `npm --prefix web run dev` in separate terminals. Check `codex mcp list`; if Anchor is absent, run `codex mcp add anchor --url http://127.0.0.1:8765/mcp` and restart Codex. Open `http://127.0.0.1:5173/` and launch Codex from the repository root. Only record if FalkorDB and the mock ERP are ready and Codex discovers Anchor's tools. Reset deletes the named synthetic graph and mock ERP state.
 
 ## Live sequence
 
-1. **Problem (20 sec):** “This fictional MCU order needs 1,000 units. The cheap backups share a failed foundry, so choosing by supplier price alone is unsafe.” State that the dataset is synthetic.
-2. **Trigger and trace (40 sec):** Ask Codex to trigger the synthetic Taiwan foundry outage, assess the cascade, and show returned paths. Point to the path list and affected orders from FalkorDB.
-3. **Plan and challenge (50 sec):** Ask for a constrained recovery and bounded follow-on failure test. The checked-in fixture comparison is 650 units unmet for the dependency-blind cheap proposal versus 350 inventory + 650 D, zero unmet, and USD 5,850 for the graph-aware plan. Show the actual allocation, objective, and number/result of tested scenarios. If a counterexample is returned, show its graph path; if none is found, say the declared set passed. Do not imply the flagship single-order run found a counterexample. Clarify that the finite stress set is not a guarantee.
-4. **Execute and verify (40 sec):** Inject one supplier reservation rejection with `anchor_inject_simulated_failure`, then execute the plan. Show the rejected receipt, failed read-back, one bounded replan, successful receipt IDs, and SQLite ERP read-back. Do not describe it as a real-world order.
-5. **Change conditions (40 sec):** Reduce `SUP-INDEPENDENT-D` to 450 capacity using `anchor_modify_simulation`, replan and execute. The expected fixture result is 350 inventory + 450 D + 200 E, zero unmet, and USD 6,550. Show the tool's actual output and explain the new plan from solver constraints, not a predetermined supplier choice.
-6. **Graph dependence and history (30 sec):** Ask why the cheap backups were excluded, then ask “Show the latest Anchor recovery history.” Show the shared upstream path and the graph-backed incident, plan, action, and receipt records.
-7. **Honest limit (15 sec):** Ask what happens if FalkorDB is down. Demonstrate/describe the explicit graph-unavailable response. If the database isn't actually down during recording, don't fake this operation.
+1. **Hook, 0:00–0:12 — Recover orders:** “Two backups can be the same failure in disguise. Anchor follows the supply graph, changes the recovery plan, and checks whether the simulated operation actually took effect.” State that the data is synthetic.
+2. **Agent action, 0:12–0:40 — Codex CLI:** Trigger the Taiwan foundry incident, assess impact, then request a recovery plan. Show the real MCP tool calls.
+3. **Graph insight, 0:40–1:05 — Explore network:** Show the paths from backup B and C to the affected foundry and the affected order. Explain that this relationship changes supplier eligibility.
+4. **Plan, 1:05–1:25 — Recover orders:** Show the computed allocation and bounded stress result. Fixture expectation: 350 inventory + 650 D, zero unmet, synthetic cost USD 5,850. Use live tool output if it differs.
+5. **Execute, 1:25–1:55 — Codex, then Recover orders:** Inject one simulated reservation rejection and execute. Show the rejected receipt, one bounded replan, and ERP read-back verification.
+6. **Adapt, 1:55–2:30 — Codex, then Recover orders:** Reduce D's capacity to 450, replan, execute, and verify. Fixture expectation: 350 inventory + 450 D + 200 E, zero unmet, synthetic cost USD 6,550. Show the actual result and new graph version.
+7. **Proof and close, 2:30–2:55 — Activity & evidence:** Show persisted incident/action history and one supporting path. State that FalkorDB changes eligibility and all writes are confined to simulation. The graph-unavailable check is for judge Q&A; never fake a database outage in the video.
 
-The dashboard is optional. Record genuine tool calls and current backend output; don't use fabricated terminal output or present an unexecuted action as complete. If Docker or graph integration has not been verified, record no success claim.
+Use the web interface to make the operational story readable, and keep Codex visible for the real MCP interaction. Record genuine tool calls and current backend output; don't use fabricated terminal output or present an unexecuted action as complete. See the updated pitch guide for the recommended browser/CLI sequence and screen-recording setup. If Docker or graph integration has not been verified, record no success claim.
