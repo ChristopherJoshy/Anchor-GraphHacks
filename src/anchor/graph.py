@@ -279,6 +279,7 @@ class GraphStore:
         plan = self._props(rows[0][0])
         for field in (
             "allocations",
+            "unmet_by_order",
             "objective",
             "tested_scenarios",
             "evidence_ids",
