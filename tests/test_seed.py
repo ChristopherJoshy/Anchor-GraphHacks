@@ -10,6 +10,10 @@ def test_synthetic_seed_builds_full_network_and_silicon_scenario():
     assert len(records["Order"]) == 60
     assert len(records["Inventory"]) == 20
     assert len(records["RouteLeg"]) == 30
+    locations = {item["id"]: item for item in records["Location"]}
+    assert locations["LOC-TW"]["name"] == "Taipei"
+    assert locations["LOC-TW"]["lat"] == 25.053056
+    assert locations["LOC-TW"]["source"] == "GeoNames"
     relationships = records["relationships"]
     assert {(edge["from"], edge["to"]) for edge in relationships if edge["type"] == "PRODUCES"} >= {
         ("FAC-MCU-ASSEMBLY", TARGET_PRODUCT_ID),

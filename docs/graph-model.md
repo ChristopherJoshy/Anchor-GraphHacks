@@ -4,7 +4,7 @@ Anchor stores a fixed synthetic manufacturing scenario in FalkorDB's `anchor_dem
 
 ## Nodes
 
-The seed contains `Supplier`, `Facility`, `Product`, `Inventory`, `Order`, `Customer`, `Location`, `Contract`, `RouteLeg`, `Incident`, `Evidence`, `RecoveryPlan`, `Action`, `ExecutionReceipt`, `Scenario`, `Policy`, and `Organization` labels. Operational facts include scenario IDs, source/provenance, availability, quantity/capacity, unit, lead days, price in integer USD minor units, contract status, or UTC timestamps as applicable. Commercial entities and relationships are synthetic. The coordinates are reference locations only.
+The seed contains `Supplier`, `Facility`, `Product`, `Inventory`, `Order`, `Customer`, `Location`, `Contract`, `RouteLeg`, `Incident`, `Evidence`, `RecoveryPlan`, `Action`, `ExecutionReceipt`, `Scenario`, `Policy`, and `Organization` labels. Operational facts include scenario IDs, source/provenance, availability, quantity/capacity, unit, lead days, price in integer USD minor units, contract status, or UTC timestamps as applicable. Commercial entities and relationships are synthetic. The 15 city reference points carry GeoNames provenance; their coordinates identify city centers for display and are not facility or supplier-site coordinates.
 
 ## Relationships used by the demo
 
@@ -16,7 +16,7 @@ The seed contains `Supplier`, `Facility`, `Product`, `Inventory`, `Order`, `Cust
 - `(:Contract)-[:APPROVES]->(:Supplier)` records qualification.
 - Route legs connect to start/end locations. Incidents connect to affected entities and evidence; plans connect to incidents/actions; actions connect to execution receipts.
 
-The synthetic demonstration models a 1,000-unit MCU order, 350 inventory units, and independent suppliers with 650 and 250 units. Primary and two apparent backups have `DEPENDS_ON` paths to the affected Taiwan foundry. The optimizer does not key on supplier names.
+The synthetic demonstration models a 1,000-unit MCU order, 350 inventory units, independent supplier D with 650 units, supplier E with 650 units, and standby supplier F with 200 units. Primary and two apparent backups have `DEPENDS_ON` paths to the affected Taiwan foundry. At baseline the solver allocates 650 from D; after D falls to 450, it allocates 200 from the more expensive E. F remains available for modeled follow-on failures. The optimizer does not key on supplier names.
 
 ## Graph version
 

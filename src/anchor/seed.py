@@ -9,30 +9,38 @@ INCIDENT_ENTITY_ID = "SUP-TAIWAN-FOUNDRY"
 TARGET_PRODUCT_ID = "PROD-MCU-001"
 TARGET_ORDER_ID = "ORDER-SILICON-1000"
 
-COUNTRIES = [
-    ("TW", "Taiwan", 25.0330, 121.5654),
-    ("CN", "China", 31.2304, 121.4737),
-    ("JP", "Japan", 35.6762, 139.6503),
-    ("KR", "South Korea", 37.5665, 126.9780),
-    ("IN", "India", 19.0760, 72.8777),
-    ("SG", "Singapore", 1.3521, 103.8198),
-    ("MY", "Malaysia", 3.1390, 101.6869),
-    ("TH", "Thailand", 13.7563, 100.5018),
-    ("VN", "Vietnam", 21.0278, 105.8342),
-    ("DE", "Germany", 52.5200, 13.4050),
-    ("NL", "Netherlands", 52.3676, 4.9041),
-    ("US", "United States", 37.7749, -122.4194),
-    ("MX", "Mexico", 19.4326, -99.1332),
-    ("ZA", "South Africa", -33.9249, 18.4241),
-    ("AE", "United Arab Emirates", 25.2048, 55.2708),
+REFERENCE_LOCATIONS = [
+    ("TW", "Taipei", 25.053056, 121.526389),
+    ("CN", "Shanghai", 31.2222222, 121.4580556),
+    ("JP", "Tokyo", 35.6895, 139.69171),
+    ("KR", "Seoul", 37.566, 126.9784),
+    ("IN", "Mumbai", 19.0728259, 72.8826141),
+    ("SG", "Singapore", 1.2896688, 103.850069),
+    ("MY", "Kuala Lumpur", 3.1412017, 101.6865349),
+    ("TH", "Bangkok", 13.753979, 100.501444),
+    ("VN", "Hanoi", 21.0245048, 105.8411694),
+    ("DE", "Berlin", 52.5243682, 13.4105301),
+    ("NL", "Amsterdam", 52.3740272, 4.8896885),
+    ("US", "San Francisco", 37.7749295, -122.4194155),
+    ("MX", "Mexico City", 19.4284724, -99.1276646),
+    ("ZA", "Cape Town", -33.925839, 18.423218),
+    ("AE", "Dubai", 25.07725, 55.309275),
 ]
 
 
 def build_seed_records() -> dict[str, list[dict[str, Any]]]:
     """Return stable records and typed relationship tuples for the demo graph."""
     locations = [
-        {"id": f"LOC-{code}", "name": name, "country": code, "lat": lat, "lon": lon}
-        for code, name, lat, lon in COUNTRIES
+        {
+            "id": f"LOC-{code}",
+            "name": name,
+            "country": code,
+            "lat": lat,
+            "lon": lon,
+            "source": "GeoNames",
+            "verified": True,
+        }
+        for code, name, lat, lon in REFERENCE_LOCATIONS
     ]
     suppliers: list[dict[str, Any]] = []
     for index in range(33):
@@ -40,7 +48,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
             {
                 "id": f"SUP-{index + 1:03d}",
                 "name": f"Synthetic Supplier {index + 1:02d}",
-                "country": COUNTRIES[index % len(COUNTRIES)][0],
+                "country": REFERENCE_LOCATIONS[index % len(REFERENCE_LOCATIONS)][0],
                 "capacity": 250 + (index * 37 % 500),
                 "available": True,
                 "unit_price_minor": 100 + index * 7,
@@ -77,7 +85,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         {
             "id": f"FAC-{i:03d}",
             "name": f"Synthetic Facility {i:02d}",
-            "country": COUNTRIES[(i - 1) % len(COUNTRIES)][0],
+            "country": REFERENCE_LOCATIONS[(i - 1) % len(REFERENCE_LOCATIONS)][0],
             "capacity": 500 + i * 25,
             "available": True,
             "unit": "units_per_bucket",
@@ -104,7 +112,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
         {
             "id": f"CUS-{i:03d}",
             "name": f"Synthetic Customer {i:02d}",
-            "country": COUNTRIES[(i * 3) % 15][0],
+            "country": REFERENCE_LOCATIONS[(i * 3) % len(REFERENCE_LOCATIONS)][0],
         }
         for i in range(1, 13)
     ]
@@ -259,7 +267,7 @@ def build_seed_records() -> dict[str, list[dict[str, Any]]]:
     ]
     organizations = [
         {"id": f"ORG-{code}", "name": f"Synthetic organization {code}", "country": code}
-        for code, *_ in COUNTRIES
+        for code, *_ in REFERENCE_LOCATIONS
     ]
     policies = [
         {
