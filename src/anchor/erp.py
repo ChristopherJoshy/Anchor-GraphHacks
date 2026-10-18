@@ -143,8 +143,8 @@ class ERP:
             )
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            db.execute("DELETE FROM allocations")
             db.execute("DELETE FROM releases")
+            db.execute("DELETE FROM allocations")
             db.execute("DELETE FROM orders")
             db.execute("DELETE FROM sources")
             db.executemany("INSERT INTO sources VALUES (?, ?, ?, ?, ?, ?, ?)", validated_sources)

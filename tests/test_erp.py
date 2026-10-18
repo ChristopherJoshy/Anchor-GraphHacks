@@ -81,6 +81,23 @@ def test_release_restores_capacity_for_a_later_allocation(erp):
     assert erp.read_allocations() == [allocation("warehouse", 5)]
 
 
+def test_reset_clears_releases_before_referenced_allocations(erp):
+    erp.apply_allocation(allocation("warehouse", 5), "reserve-before-reset")
+    erp.release_allocation("warehouse", "order-1", "release-before-reset")
+
+    erp.reset(
+        {
+            "sources": [
+                {"id": "warehouse", "kind": "inventory", "product_id": "chip", "capacity": 5}
+            ],
+            "orders": [{"id": "order-1", "product_id": "chip", "quantity": 10}],
+        }
+    )
+
+    assert erp.read_allocations() == []
+    assert erp.current_state()["orders"][0]["status"] == "OPEN"
+
+
 def test_verify_detects_read_back_mismatch(erp):
     planned = [allocation("warehouse", 5)]
     assert erp.verify(planned) is False
