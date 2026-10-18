@@ -1,0 +1,17 @@
+.work*/
+.*.hf-transaction-*/
+motion/node_modules/
+motion/.hyperframes/
+motion/.hf*/
+motion/.thumbnails/
+motion/.waveform-cache/
+motion/AGENTS.md
+motion/CLAUDE.md
+motion/meta.json
+motion/renders/
+motion/assets/footage/
+motion/assets/audio/
+motion/assets/reference/
+motion/boards/
+*.zip
+anchor-motion-contact-sheet.jpg

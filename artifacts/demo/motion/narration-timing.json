@@ -1,0 +1,380 @@
+{
+  "provider": "Local Kokoro-82M, synthetic voice",
+  "voice": "af_heart",
+  "speed": 1.03,
+  "lines": {
+    "hook": {
+      "path": "assets/audio/hook.wav",
+      "duration": 12.884,
+      "text_sha256": "e351a3cf35c1365bd449053882efadb75c393165b06395fc8bfc80e77c5c7bfb",
+      "sentences": [
+        {
+          "text": "Meet Silicon Cascade, a fictional manufacturer.",
+          "start": 0.0,
+          "duration": 2.9867
+        },
+        {
+          "text": "A customer needs one thousand microcontrollers, but the warehouse holds only three hundred and fifty.",
+          "start": 3.2067,
+          "duration": 5.76
+        },
+        {
+          "text": "Then an upstream supply interruption puts the order at risk.",
+          "start": 9.1867,
+          "duration": 3.4773
+        }
+      ]
+    },
+    "gap": {
+      "path": "assets/audio/gap.wav",
+      "duration": 10.9133,
+      "text_sha256": "822652a5e433d618912b27b965841b42e682b9d56ad1af12c6bdf0dd2a8e6099",
+      "sentences": [
+        {
+          "text": "Here is the shortfall.",
+          "start": 0.0,
+          "duration": 1.3013
+        },
+        {
+          "text": "Each square represents fifty chips.",
+          "start": 1.5213,
+          "duration": 1.92
+        },
+        {
+          "text": "Inventory fills seven squares.",
+          "start": 3.6613,
+          "duration": 1.7707
+        },
+        {
+          "text": "Thirteen remain empty.",
+          "start": 5.652,
+          "duration": 1.4507
+        },
+        {
+          "text": "Recovery has to find another six hundred and fifty units.",
+          "start": 7.3227,
+          "duration": 3.3707
+        }
+      ]
+    },
+    "outage": {
+      "path": "assets/audio/outage.wav",
+      "duration": 12.9547,
+      "text_sha256": "4b4a57f9b66e9a8df439db93dacea9b164b307dab7ad03004559afac65ef4e00",
+      "sentences": [
+        {
+          "text": "In this synthetic scenario, a Taiwan foundry goes down.",
+          "start": 0.0,
+          "duration": 3.4133
+        },
+        {
+          "text": "The normal supply route is interrupted.",
+          "start": 3.6333,
+          "duration": 2.176
+        },
+        {
+          "text": "The factory turns to backup suppliers.",
+          "start": 6.0293,
+          "duration": 2.1333
+        },
+        {
+          "text": "But two supplier names do not necessarily mean two independent sources.",
+          "start": 8.3827,
+          "duration": 4.352
+        }
+      ]
+    },
+    "network": {
+      "path": "assets/audio/network.wav",
+      "duration": 10.0893,
+      "text_sha256": "70514dcddd63fda207053b8863a1034b19f91ebf5d8412aab2ae0b627d5c6aab",
+      "sentences": [
+        {
+          "text": "This is the real Anchor web app, exploring the synthetic supply network.",
+          "start": 0.0,
+          "duration": 4.16
+        },
+        {
+          "text": "The map provides context.",
+          "start": 4.38,
+          "duration": 1.5787
+        },
+        {
+          "text": "The dependency paths provide the evidence for the recovery decision.",
+          "start": 6.1787,
+          "duration": 3.6907
+        }
+      ]
+    },
+    "graph": {
+      "path": "assets/audio/graph.wav",
+      "duration": 14.1987,
+      "text_sha256": "3cfaf671ae51a945ec613d99fe5c25bb349834ad103f090aeeba4bafafdea6af",
+      "sentences": [
+        {
+          "text": "Anchor follows connected evidence in Falkor D B.",
+          "start": 0.0,
+          "duration": 3.136
+        },
+        {
+          "text": "Backup B depends on the Taiwan foundry.",
+          "start": 3.356,
+          "duration": 2.3893
+        },
+        {
+          "text": "So does Backup C.",
+          "start": 5.9653,
+          "duration": 1.216
+        },
+        {
+          "text": "Their paths converge on the same failed source.",
+          "start": 7.4013,
+          "duration": 2.432
+        },
+        {
+          "text": "One upstream outage can therefore affect both apparent alternatives.",
+          "start": 10.0533,
+          "duration": 3.9253
+        }
+      ]
+    },
+    "evidence": {
+      "path": "assets/audio/evidence.wav",
+      "duration": 11.8667,
+      "text_sha256": "22cc4791a70c65d5dafd8bade6d92939995539c0a02d3653649add30ee47a0dc",
+      "sentences": [
+        {
+          "text": "Pause on the actual returned paths.",
+          "start": 0.0,
+          "duration": 1.8133
+        },
+        {
+          "text": "Both backups point to the same foundry.",
+          "start": 2.0333,
+          "duration": 2.1547
+        },
+        {
+          "text": "These recorded relationships make the shared risk visible.",
+          "start": 4.408,
+          "duration": 3.3067
+        },
+        {
+          "text": "A different supplier name does not establish an independent source.",
+          "start": 7.9347,
+          "duration": 3.712
+        }
+      ]
+    },
+    "allocation": {
+      "path": "assets/audio/allocation.wav",
+      "duration": 17.556,
+      "text_sha256": "cc3d1ce59cc30cffe2ef47c50d5dc46dd0b7594bb42237cbc200aa4ed46d2c9d",
+      "sentences": [
+        {
+          "text": "The recorded optimizer candidate takes three hundred and fifty units from inventory, plus six hundred and fifty from independent Supplier D.",
+          "start": 0.0,
+          "duration": 8.3413
+        },
+        {
+          "text": "That fills the one thousand unit order, at a synthetic cost of five thousand eight hundred and fifty dollars.",
+          "start": 8.5613,
+          "duration": 5.9093
+        },
+        {
+          "text": "This is a candidate, not proof of execution.",
+          "start": 14.6907,
+          "duration": 2.6453
+        }
+      ]
+    },
+    "stress": {
+      "path": "assets/audio/stress.wav",
+      "duration": 13.3453,
+      "text_sha256": "cca881a0215e69da9fd17bdba2da13df82f24caee06abee30fd5fe45be453c37",
+      "sentences": [
+        {
+          "text": "A candidate still needs to be challenged.",
+          "start": 0.0,
+          "duration": 2.0907
+        },
+        {
+          "text": "What if capacity falls?",
+          "start": 2.3107,
+          "duration": 1.408
+        },
+        {
+          "text": "What if another source fails?",
+          "start": 3.9387,
+          "duration": 1.4933
+        },
+        {
+          "text": "Anchor uses a declared, finite set of modeled scenarios.",
+          "start": 5.652,
+          "duration": 3.5413
+        },
+        {
+          "text": "Passing those cases does not establish universal resilience.",
+          "start": 9.4133,
+          "duration": 3.712
+        }
+      ]
+    },
+    "execution-proof": {
+      "path": "assets/audio/execution-proof.wav",
+      "duration": 14.5613,
+      "text_sha256": "9235617f8a736437fa55863d0b4056e9b976039344f4d81f527b4e66d7b7fc84",
+      "sentences": [
+        {
+          "text": "Now the new command line test.",
+          "start": 0.0,
+          "duration": 1.728
+        },
+        {
+          "text": "Execution and read-back return verified true.",
+          "start": 1.948,
+          "duration": 3.0933
+        },
+        {
+          "text": "But look at the receipt status: duplicate.",
+          "start": 5.2613,
+          "duration": 2.3253
+        },
+        {
+          "text": "The quantities were already active.",
+          "start": 7.8067,
+          "duration": 1.856
+        },
+        {
+          "text": "This run confirms existing allocations; it does not apply new quantities.",
+          "start": 9.8827,
+          "duration": 4.4587
+        }
+      ]
+    },
+    "replan": {
+      "path": "assets/audio/replan.wav",
+      "duration": 12.5853,
+      "text_sha256": "70b30f840c3977fb30a90c6b30f308725faec2950cc35c4b2211f40d269db430",
+      "sentences": [
+        {
+          "text": "Next, the test reduces Supplier D's capacity.",
+          "start": 0.0,
+          "duration": 3.0507
+        },
+        {
+          "text": "The old mix no longer fits that constraint.",
+          "start": 3.2707,
+          "duration": 2.304
+        },
+        {
+          "text": "Anchor must calculate another allocation, using eligible sources and current limits, or report a shortage.",
+          "start": 5.7947,
+          "duration": 6.5707
+        }
+      ]
+    },
+    "changed-plan": {
+      "path": "assets/audio/changed-plan.wav",
+      "duration": 14.6907,
+      "text_sha256": "f2893f4ade332b290555addffc36a50a5a69b8e8487a9cdabc1c16c442e8883b",
+      "sentences": [
+        {
+          "text": "The fresh calculation changes the mix: three hundred and fifty from inventory, four hundred and fifty from D, and two hundred from E.",
+          "start": 0.0,
+          "duration": 7.9787
+        },
+        {
+          "text": "The plan still covers one thousand units, now costing six thousand five hundred and fifty synthetic dollars.",
+          "start": 8.1987,
+          "duration": 6.272
+        }
+      ]
+    },
+    "verification": {
+      "path": "assets/audio/verification.wav",
+      "duration": 16.4107,
+      "text_sha256": "cadf1c1f3573c943be24407509e7ba0925fbba0954623475a20ef047ace48ac1",
+      "sentences": [
+        {
+          "text": "A successful action response is only one piece of evidence.",
+          "start": 0.0,
+          "duration": 3.648
+        },
+        {
+          "text": "The simulation persists operational state in the mock E R P.",
+          "start": 3.868,
+          "duration": 4.0107
+        },
+        {
+          "text": "Anchor reads that state back and compares it with the expected outcome.",
+          "start": 8.0987,
+          "duration": 3.9467
+        },
+        {
+          "text": "Verification must check the stored facts, not just trust the response.",
+          "start": 12.2653,
+          "duration": 3.9253
+        }
+      ]
+    },
+    "readback-proof": {
+      "path": "assets/audio/readback-proof.wav",
+      "duration": 15.8133,
+      "text_sha256": "79472f588e01cece4caa13814161c1044401f513688d0c7e675b8b909fcfdfb9",
+      "sentences": [
+        {
+          "text": "Here is the recorded final read-back.",
+          "start": 0.0,
+          "duration": 2.112
+        },
+        {
+          "text": "The order is allocated, with twelve scheduled days and zero remaining shortfall.",
+          "start": 2.332,
+          "duration": 4.672
+        },
+        {
+          "text": "Inventory was already allocated, so its receipt remains duplicate.",
+          "start": 7.224,
+          "duration": 3.968
+        },
+        {
+          "text": "Verification confirms the final active mix in the simulation.",
+          "start": 11.412,
+          "duration": 4.1813
+        }
+      ]
+    },
+    "outro": {
+      "path": "assets/audio/outro.wav",
+      "duration": 8.1827,
+      "text_sha256": "0c74071a397f704f2470068285d30d837b559d099999b55dc2d200cf3dd40466",
+      "sentences": [
+        {
+          "text": "Anchor.",
+          "start": 0.0,
+          "duration": 0.7467
+        },
+        {
+          "text": "Trace the risk.",
+          "start": 0.9667,
+          "duration": 1.0667
+        },
+        {
+          "text": "Rethink the plan.",
+          "start": 2.2533,
+          "duration": 1.0667
+        },
+        {
+          "text": "Check the stored outcome.",
+          "start": 3.54,
+          "duration": 1.3227
+        },
+        {
+          "text": "Built with synthetic data and simulated actions.",
+          "start": 5.0827,
+          "duration": 2.88
+        }
+      ]
+    }
+  }
+}

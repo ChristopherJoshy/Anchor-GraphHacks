@@ -1,0 +1,47 @@
+[
+  {
+    "file": "interface.zip",
+    "url": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+    "sha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232"
+  },
+  {
+    "file": "impact.zip",
+    "url": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+    "sha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8"
+  },
+  {
+    "file": "Bangers-Regular.ttf",
+    "url": "https://raw.githubusercontent.com/googlefonts/bangers/main/fonts/ttf/Bangers-Regular.ttf",
+    "sha256": "4160a7311de9342674cce9160cde9fcbb30f48190397d86ff1b70b455af65824"
+  },
+  {
+    "file": "Bangers-OFL.txt",
+    "url": "https://raw.githubusercontent.com/googlefonts/bangers/main/OFL.txt",
+    "sha256": "630dd5a307c0657b094d324e069b390edf90182fe5003639e06c02a0e5769af7"
+  },
+  {
+    "file": "Plex-Regular.woff2",
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5.3.0/files/ibm-plex-sans-latin-400-normal.woff2",
+    "sha256": "3b646991d30055a93a4ecc499713d4347953a74a947ecab435ab72070cbdab0e"
+  },
+  {
+    "file": "Plex-Bold.woff2",
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5.3.0/files/ibm-plex-sans-latin-700-normal.woff2",
+    "sha256": "42e7b0c143c19df9d99fd896e76b48f846edf0902d200bc29796b34d12c33aa7"
+  },
+  {
+    "file": "Plex-OFL.txt",
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5.3.0/LICENSE",
+    "sha256": "d0283623ef57e722fd0eb688a8041589670c608ab780cd3612d06ba6f153d3fd"
+  },
+  {
+    "file": "gsap.min.js",
+    "url": "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js",
+    "sha256": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280"
+  },
+  {
+    "file": "HyperFrames-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/main/LICENSE",
+    "sha256": "4259155fb06f127687ee7b0a8a3682d45132db0f2da26cbc0b7a2d1e796436b8"
+  }
+]

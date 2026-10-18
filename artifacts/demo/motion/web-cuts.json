@@ -1,0 +1,12 @@
+{
+  "source": "Screen Recording 2026-10-18 185115.mp4",
+  "cuts": [
+    {
+      "id": "network",
+      "start": 2,
+      "duration": 10
+    }
+  ],
+  "excluded": "All material after 00:12, including empty/error map and automatic recovery/demo views",
+  "audio": "muted; supplied narration pending"
+}

@@ -1,0 +1,223 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 215,
+  "scenes": [
+    {
+      "id": "hook",
+      "title": "The order that must be filled",
+      "start": 0,
+      "duration": 15,
+      "kind": "SCENARIO"
+    },
+    {
+      "id": "gap",
+      "title": "Make the 650-unit shortfall visible",
+      "start": 15,
+      "duration": 13,
+      "kind": "SCENARIO ARITHMETIC"
+    },
+    {
+      "id": "outage",
+      "title": "The shared upstream source goes down",
+      "start": 28,
+      "duration": 15,
+      "kind": "EDITORIAL CAUSE AND EFFECT"
+    },
+    {
+      "id": "network",
+      "title": "Locate the network in the real web app",
+      "start": 43,
+      "duration": 12,
+      "kind": "ACTUAL WEB RECORDING"
+    },
+    {
+      "id": "graph",
+      "title": "Two suppliers connect to the same failed source",
+      "start": 55,
+      "duration": 16,
+      "kind": "EDITORIAL / RECORDED RELATIONSHIPS"
+    },
+    {
+      "id": "evidence",
+      "title": "Let the viewer read the real returned paths",
+      "start": 71,
+      "duration": 14,
+      "kind": "RECORDED EVIDENCE"
+    },
+    {
+      "id": "allocation",
+      "title": "Explain how the recorded candidate fills the order",
+      "start": 85,
+      "duration": 20,
+      "kind": "RECORDED CANDIDATE"
+    },
+    {
+      "id": "stress",
+      "title": "What if the next failure defeats the candidate?",
+      "start": 105,
+      "duration": 15,
+      "kind": "EDITORIAL WORKFLOW"
+    },
+    {
+      "id": "execution-proof",
+      "title": "The test run verifies existing allocations",
+      "start": 120,
+      "duration": 17,
+      "kind": "ACTUAL CLI TEST / DUPLICATE RECEIPTS"
+    },
+    {
+      "id": "replan",
+      "title": "Changed capacity means solving the allocation again",
+      "start": 137,
+      "duration": 15,
+      "kind": "EDITORIAL / RECORDED CAPACITY CHANGE"
+    },
+    {
+      "id": "changed-plan",
+      "title": "The fresh calculation includes Supplier E",
+      "start": 152,
+      "duration": 17,
+      "kind": "ACTUAL CLI TEST / REVISED CANDIDATE"
+    },
+    {
+      "id": "verification",
+      "title": "Execution is separate from checking persisted state",
+      "start": 169,
+      "duration": 18,
+      "kind": "EDITORIAL / READ-BACK WORKFLOW"
+    },
+    {
+      "id": "readback-proof",
+      "title": "The stored final allocation was read back",
+      "start": 187,
+      "duration": 18,
+      "kind": "ACTUAL CLI TEST / RECORDED READ-BACK"
+    },
+    {
+      "id": "outro",
+      "title": "Anchor / evidence changes the decision",
+      "start": 205,
+      "duration": 10,
+      "kind": "REVIEW DRAFT V03"
+    }
+  ],
+  "sound_cues": [
+    {
+      "start": 1.1,
+      "file": "open_002",
+      "volume": 0.22
+    },
+    {
+      "start": 5.2,
+      "file": "bong_001",
+      "volume": 0.22
+    },
+    {
+      "start": 16.3,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 18,
+      "file": "switch_002",
+      "volume": 0.22
+    },
+    {
+      "start": 20.6,
+      "file": "impactPunch_medium_002",
+      "volume": 0.22
+    },
+    {
+      "start": 33,
+      "file": "error_003",
+      "volume": 0.22
+    },
+    {
+      "start": 59.2,
+      "file": "switch_002",
+      "volume": 0.22
+    },
+    {
+      "start": 60.4,
+      "file": "switch_002",
+      "volume": 0.22
+    },
+    {
+      "start": 67.2,
+      "file": "bong_001",
+      "volume": 0.22
+    },
+    {
+      "start": 74,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 76,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 86,
+      "file": "open_002",
+      "volume": 0.22
+    },
+    {
+      "start": 88,
+      "file": "switch_002",
+      "volume": 0.22
+    },
+    {
+      "start": 90.5,
+      "file": "bong_001",
+      "volume": 0.22
+    },
+    {
+      "start": 108,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 110,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 112,
+      "file": "error_003",
+      "volume": 0.22
+    },
+    {
+      "start": 139.5,
+      "file": "switch_002",
+      "volume": 0.22
+    },
+    {
+      "start": 142.2,
+      "file": "open_002",
+      "volume": 0.22
+    },
+    {
+      "start": 171,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 174,
+      "file": "click_003",
+      "volume": 0.22
+    },
+    {
+      "start": 178,
+      "file": "switch_002",
+      "volume": 0.22
+    },
+    {
+      "start": 205.2,
+      "file": "impactPunch_medium_002",
+      "volume": 0.22
+    }
+  ]
+}

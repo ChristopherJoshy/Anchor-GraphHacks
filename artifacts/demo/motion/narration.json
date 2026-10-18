@@ -1,0 +1,20 @@
+{
+  "voice": "af_heart",
+  "provider": "Local Kokoro-82M, synthetic voice",
+  "lines": {
+    "hook": "Meet Silicon Cascade, a fictional manufacturer. A customer needs one thousand microcontrollers, but the warehouse holds only three hundred and fifty. Then an upstream supply interruption puts the order at risk.",
+    "gap": "Here is the shortfall. Each square represents fifty chips. Inventory fills seven squares. Thirteen remain empty. Recovery has to find another six hundred and fifty units.",
+    "outage": "In this synthetic scenario, a Taiwan foundry goes down. The normal supply route is interrupted. The factory turns to backup suppliers. But two supplier names do not necessarily mean two independent sources.",
+    "network": "This is the real Anchor web app, exploring the synthetic supply network. The map provides context. The dependency paths provide the evidence for the recovery decision.",
+    "graph": "Anchor follows connected evidence in Falkor D B. Backup B depends on the Taiwan foundry. So does Backup C. Their paths converge on the same failed source. One upstream outage can therefore affect both apparent alternatives.",
+    "evidence": "Pause on the actual returned paths. Both backups point to the same foundry. These recorded relationships make the shared risk visible. A different supplier name does not establish an independent source.",
+    "allocation": "The recorded optimizer candidate takes three hundred and fifty units from inventory, plus six hundred and fifty from independent Supplier D. That fills the one thousand unit order, at a synthetic cost of five thousand eight hundred and fifty dollars. This is a candidate, not proof of execution.",
+    "stress": "A candidate still needs to be challenged. What if capacity falls? What if another source fails? Anchor uses a declared, finite set of modeled scenarios. Passing those cases does not establish universal resilience.",
+    "execution-proof": "Now the new command line test. Execution and read-back return verified true. But look at the receipt status: duplicate. The quantities were already active. This run confirms existing allocations; it does not apply new quantities.",
+    "replan": "Next, the test reduces Supplier D's capacity. The old mix no longer fits that constraint. Anchor must calculate another allocation, using eligible sources and current limits, or report a shortage.",
+    "changed-plan": "The fresh calculation changes the mix: three hundred and fifty from inventory, four hundred and fifty from D, and two hundred from E. The plan still covers one thousand units, now costing six thousand five hundred and fifty synthetic dollars.",
+    "verification": "A successful action response is only one piece of evidence. The simulation persists operational state in the mock E R P. Anchor reads that state back and compares it with the expected outcome. Verification must check the stored facts, not just trust the response.",
+    "readback-proof": "Here is the recorded final read-back. The order is allocated, with twelve scheduled days and zero remaining shortfall. Inventory was already allocated, so its receipt remains duplicate. Verification confirms the final active mix in the simulation.",
+    "outro": "Anchor. Trace the risk. Rethink the plan. Check the stored outcome. Built with synthetic data and simulated actions."
+  }
+}

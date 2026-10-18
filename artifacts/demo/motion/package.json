@@ -1,0 +1,11 @@
+{
+  "name": "motion",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:scenes": "node scripts/build.mjs",
+    "dev": "npx --yes hyperframes@0.8.171 preview",
+    "check": "npx --yes hyperframes@0.8.171 check",
+    "render": "npx --yes hyperframes@0.8.171 render -q high -o ../anchor-demo-v03.mp4"
+  }
+}

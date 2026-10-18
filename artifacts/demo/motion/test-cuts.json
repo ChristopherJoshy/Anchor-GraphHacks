@@ -1,0 +1,40 @@
+{
+  "source": "Screen Recording 2026-10-18 193237.mp4",
+  "cuts": [
+    {
+      "id": "execution",
+      "start": 153,
+      "duration": 2,
+      "crop": [
+        20,
+        606,
+        1420,
+        278
+      ]
+    },
+    {
+      "id": "changed-plan",
+      "start": 229,
+      "duration": 2,
+      "crop": [
+        20,
+        712,
+        1420,
+        176
+      ]
+    },
+    {
+      "id": "readback",
+      "start": 229,
+      "duration": 2,
+      "crop": [
+        20,
+        900,
+        1420,
+        132
+      ]
+    }
+  ],
+  "audio": "muted; original untouched",
+  "caveat": "Execution verifies existing duplicate allocations; changed-capacity readback reports final active allocations."
+}

@@ -1,0 +1,29 @@
+{
+  "source": "20261018-1240-06.4842655.mp4",
+  "limit_seconds": 384,
+  "cuts": [
+    {
+      "id": "paths",
+      "start": 239,
+      "duration": 2,
+      "crop": [
+        18,
+        908,
+        1060,
+        92
+      ]
+    },
+    {
+      "id": "plan",
+      "start": 329,
+      "duration": 2,
+      "crop": [
+        18,
+        876,
+        1420,
+        122
+      ]
+    }
+  ],
+  "audio": "muted in graphics review; original file untouched"
+}

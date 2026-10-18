@@ -1,0 +1,17 @@
+{
+  "version": "v03",
+  "duration_seconds": 215,
+  "width": 1920,
+  "height": 1080,
+  "fps": "30/1",
+  "frames": 6450,
+  "video_codec": "h264",
+  "decode": "passed for all frames and audio",
+  "black_intervals_at_least_150ms": [],
+  "audio_peak_dbfs": -1.0,
+  "caption_sentences": 55,
+  "optional_subtitle_track": true,
+  "modules": 14,
+  "full_source_playback": false,
+  "full_human_audio_playback": false
+}
