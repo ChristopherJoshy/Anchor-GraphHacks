@@ -73,7 +73,7 @@ See `docs/architecture.md`, `docs/product-decision.md`, `docs/research.md`, and 
 
 ## Verification and benchmark reporting
 
-Run `uv run pytest`. The suite covers optimizer constraints, mock ERP mutations, MCP tools, and the Silicon Cascade workflow against FalkorDB when it is running. Performance benchmarks are not yet available, so this README makes no latency or business-improvement claims.
+Run `uv run pytest` for the backend suite. It covers optimizer constraints, mock ERP mutations, MCP tools, and the Silicon Cascade workflow against FalkorDB when it is running. Reproduce the local graph and recovery measurements with `uv run python scripts/benchmark.py`; methodology, machine details, and the bounded synthetic results are in [docs/benchmark-results.md](docs/benchmark-results.md). These are machine-specific prototype measurements, not service-level or business-improvement claims.
 
 To retrieve incidents, plans, actions, and receipts after reopening your coding-agent client, ask it: “Show the latest Anchor recovery history.” The `anchor_history` tool reads a bounded set of records from FalkorDB.
 

@@ -7,4 +7,4 @@
 - A local Docker/FalkorDB end-to-end test validates the Silicon Cascade Cypher, graph-backed replan, persistent history, and mock ERP read-back. The wider synthetic graph is not a real-world supplier network.
 - The simulation supports one injected supplier-reservation rejection and at most one solver replan. General timeout/backoff handling, partial workflow compensation, and multi-process concurrency are not implemented.
 - HTTP/MCP is local and unauthenticated; remote exposure is unsupported. Codex CLI registration and tool calls were exercised; Claude Code and OpenCode have not been exercised.
-- Benchmarks and performance claims are not published because no full graph-backed workload has been measured on the development machine.
+- A single local benchmark run on the synthetic Silicon Cascade is recorded in `docs/benchmark-results.md`. Its small graph and sample counts do not support general performance or business-improvement claims.
