@@ -1,0 +1,37 @@
+[project]
+name = "anchor-resilience-agent"
+version = "0.1.0"
+description = "Graph-native recovery under attack, powered by FalkorDB"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30,<1",
+  "pydantic>=2.8,<3",
+  "pydantic-settings>=2.5,<3",
+  "falkordb>=1.0,<2",
+  "ortools>=9.11,<10",
+  "fastmcp>=2,<3",
+  "httpx>=0.27,<1",
+  "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "pytest-asyncio>=0.24,<1", "ruff>=0.6,<1", "mypy>=1.11,<2"]
+
+[project.scripts]
+anchor = "anchor.cli:app"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/anchor"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
