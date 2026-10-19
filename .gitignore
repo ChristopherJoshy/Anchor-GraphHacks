@@ -17,3 +17,6 @@ web/.npm-cache/
 *.log
 *.mp4
 *.webm
+
+# Small, reviewed recording excerpts used by the README.
+!docs/media/*.mp4

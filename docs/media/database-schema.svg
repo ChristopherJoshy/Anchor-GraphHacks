@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="890" viewBox="0 0 1600 890" role="img" aria-labelledby="title desc">
+  <title id="title">Anchor database schema: connected facts, decision history, and persisted operational state</title>
+  <desc id="desc">FalkorDB stores operational entities linked by dependencies, supply, contracts, inventory, and demand, plus incident, plan, action, receipt, and evidence history. SQLite separately stores sources, orders, allocations, releases, and injected execution faults. Read-back verification checks SQLite state after simulated execution.</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1L8 5L0 9" fill="none" stroke="#426d5e" stroke-width="1.5"/></marker></defs>
+  <rect width="1600" height="890" rx="22" fill="#f6f3eb"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="52" y="62" font-size="15" fill="#547364" letter-spacing="3">THE DATA BEHIND THE DECISION</text>
+    <text x="50" y="117" font-size="42" font-weight="700" fill="#183a30">Connected facts. Traceable actions. Separate read-back.</text>
+    <rect x="48" y="155" width="1504" height="465" rx="18" fill="#fffef9" stroke="#cbd5c6"/>
+    <rect x="48" y="155" width="1504" height="62" rx="18" fill="#1c3c32"/>
+    <rect x="48" y="190" width="1504" height="27" fill="#1c3c32"/>
+    <text x="76" y="196" fill="#f7f4e9" font-size="24" font-weight="700">FalkorDB</text>
+    <text x="254" y="194" fill="#d4dfd2" font-size="18">Dependency topology · graph evidence · versioned decisions and history</text>
+    <rect x="76" y="243" width="688" height="247" rx="12" fill="#f2f5eb"/>
+    <text x="98" y="278" fill="#214c3a" font-size="21" font-weight="700">Operational network</text>
+    <g fill="#304b3b" font-size="19">
+      <text x="98" y="319">Supplier ─ DEPENDS_ON → Supplier</text>
+      <text x="98" y="352">Supplier ─ SUPPLIES → Product ← REQUIRES ─ Order</text>
+      <text x="98" y="385">Inventory ─ STORES → Product</text>
+      <text x="98" y="418">Contract ─ APPROVES → Supplier</text>
+      <text x="98" y="451">Facility · Location · RouteLeg · Customer</text>
+    </g>
+    <rect x="794" y="243" width="730" height="247" rx="12" fill="#f8f0e5"/>
+    <text x="816" y="278" fill="#704f30" font-size="21" font-weight="700">Decision and execution history</text>
+    <g fill="#674f39" font-size="19">
+      <text x="816" y="319">RecoveryPlan ─ MITIGATES → Incident ─ AFFECTS → entity</text>
+      <text x="816" y="352">RecoveryPlan ─ CONTAINS → Action</text>
+      <text x="816" y="385">Action ─ PRODUCED → ExecutionReceipt</text>
+      <text x="816" y="418">Action ─ JUSTIFIED_BY → Evidence</text>
+      <text x="816" y="451">Incident ─ SUPPORTED_BY → Evidence</text>
+    </g>
+    <text x="98" y="530" fill="#466550" font-size="18">Scenario: graph version and membership</text>
+    <text x="816" y="530" fill="#705c43" font-size="18">Policy + Organization: additional seed context</text>
+    <path d="M98 552H1502" stroke="#d5dccb"/>
+    <text x="98" y="588" fill="#3b5643" font-size="19">id · provenance · integer quantities · availability · currency / scale · timestamps, where applicable</text>
+    <path d="M800 620V662" stroke="#426d5e" stroke-width="2.5" marker-end="url(#a)"/>
+    <rect x="48" y="676" width="1504" height="164" rx="18" fill="#e6eee2" stroke="#b8cbb7"/>
+    <text x="76" y="714" fill="#214b38" font-size="24" font-weight="700">SQLite mock ERP</text>
+    <text x="340" y="713" fill="#395d46" font-size="19">Separate persistent operational state · synthetic execution only</text>
+    <g fill="#345c43" font-size="21" font-weight="700">
+      <text x="78" y="760">sources</text><text x="304" y="760">orders</text><text x="530" y="760">allocations</text><text x="866" y="760">releases</text><text x="1165" y="760">execution_faults</text>
+    </g>
+    <text x="78" y="806" fill="#486b50" font-size="18">Read back active allocations + order state → compare postconditions → record verified outcome</text>
+    <text x="52" y="869" fill="#697861" font-size="15">Schema overview of the implementation. All operational/commercial data is synthetic. Detailed fields and directed relationships appear below.</text>
+  </g>
+</svg>
